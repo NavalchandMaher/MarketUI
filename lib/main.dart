@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 
+import 'dart:convert';
+import 'config.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -18,7 +21,97 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF0B0F1C),
         cardColor: const Color(0xFF111827),
       ),
-      home: const Dashboard(),
+      home: const MainScreen(),
+    );
+  }
+}
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+
+  int selectedIndex = 0;
+
+  final pages = [
+    Dashboard(),
+    PaperTradesPage(),
+    LearningPage(),
+    SettingsPage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+
+      appBar: AppBar(
+        title: const Text("AI Trading Platform"),
+      ),
+
+      drawer: Drawer(
+        child: ListView(
+          children: [
+
+            const DrawerHeader(
+              child: Text(
+                "Market AI",
+                style: TextStyle(fontSize: 24),
+              ),
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.dashboard),
+              title: const Text("Dashboard"),
+              onTap: () {
+                setState(() {
+                  selectedIndex = 0;
+                });
+                Navigator.pop(context);
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.show_chart),
+              title: const Text("Paper Trades"),
+              onTap: () {
+                setState(() {
+                  selectedIndex = 1;
+                });
+                Navigator.pop(context);
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.psychology),
+              title: const Text("Learning"),
+              onTap: () {
+                setState(() {
+                  selectedIndex = 2;
+                });
+                Navigator.pop(context);
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text("Settings"),
+              onTap: () {
+                setState(() {
+                  selectedIndex = 3;
+                });
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+
+      body: pages[selectedIndex],
     );
   }
 }
@@ -74,8 +167,7 @@ class _DashboardState extends State<Dashboard> {
   // ================= LOAD =================
   Future load() async {
     final res = await http.get(
-      Uri.parse(
-          "http://127.0.0.1:8000/analysis?symbol=$symbol&timeframe=$timeframe"),
+      Uri.parse("$baseUrl/analysis?symbol=$symbol&timeframe=$timeframe"),
     );
 
     final j = json.decode(res.body);
@@ -305,9 +397,6 @@ Widget indicatorRow(
     ),
   );
 }
-
-
-
   // ================= BUILD =================
   @override
   Widget build(BuildContext context) {
@@ -386,6 +475,219 @@ Widget indicatorRow(
                 ],
               ),
             ),
+    );
+  }
+}
+
+
+// ================= PAPER TRADES PAGE =================
+class PaperTradesPage extends StatefulWidget {
+  const PaperTradesPage({super.key});
+
+  @override
+  State<PaperTradesPage> createState() =>
+      _PaperTradesPageState();
+}
+
+class _PaperTradesPageState
+    extends State<PaperTradesPage> {
+
+  Map stats = {};
+  List trades = [];
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future load() async {
+
+    final statsRes = await http.get(
+      Uri.parse(
+        "$baseUrl/paper-trades",
+      ),
+    );
+
+    final historyRes = await http.get(
+      Uri.parse(
+        "$baseUrl/paper-trades/history",
+      ),
+    );
+
+    setState(() {
+      stats = jsonDecode(statsRes.body);
+      trades = jsonDecode(historyRes.body);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+
+      children: [
+
+        Card(
+          child: ListTile(
+            title: Text(
+              "Win Rate ${stats["win_rate"] ?? 0}%",
+            ),
+            subtitle: Text(
+              "Profit ${stats["total_profit"] ?? 0}",
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        ...trades.map(
+          (trade) => Card(
+            child: ListTile(
+              title: Text(
+                trade["symbol"],
+              ),
+              subtitle: Text(
+                trade["signal"],
+              ),
+              trailing: Text(
+                trade["pnl"].toString(),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+// ================= LEARNING PAGE =================
+class LearningPage extends StatefulWidget {
+  const LearningPage({super.key});
+
+  @override
+  State<LearningPage> createState() =>
+      _LearningPageState();
+}
+
+class _LearningPageState
+    extends State<LearningPage> {
+
+  List logs = [];
+  Map strategy = {};
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future load() async {
+
+    final logsRes = await http.get(
+      Uri.parse(
+        "$baseUrl/learning-logs",
+      ),
+    );
+
+    final strategyRes = await http.get(
+      Uri.parse(
+        "$baseUrl/strategy",
+      ),
+    );
+
+    setState(() {
+
+      logs = jsonDecode(
+        logsRes.body,
+      );
+
+      strategy = jsonDecode(
+        strategyRes.body,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+
+      children: [
+
+        Card(
+          child: ListTile(
+            title: Text(
+              strategy["name"] ?? "",
+            ),
+            subtitle: Text(
+              "Version ${strategy["version"]}",
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        ...logs.map(
+          (log) => Card(
+            child: ListTile(
+              title: Text(
+                log["date"],
+              ),
+              subtitle: Text(
+                "Threshold ${log["old_threshold"]} → ${log["new_threshold"]}",
+              ),
+              trailing: Text(
+                "${log["win_rate"]}%",
+              ),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+}
+// ================= SETTINGS PAGE =================
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+
+    return ListView(
+      children: [
+
+        ListTile(
+          title: const Text(
+            "Auto Learning",
+          ),
+          trailing: Switch(
+            value: true,
+            onChanged: (_) {},
+          ),
+        ),
+
+        ListTile(
+          title: const Text(
+            "Paper Trading",
+          ),
+          trailing: Switch(
+            value: true,
+            onChanged: (_) {},
+          ),
+        ),
+
+        ListTile(
+          title: const Text(
+            "Telegram Alerts",
+          ),
+          trailing: Switch(
+            value: false,
+            onChanged: (_) {},
+          ),
+        ),
+      ],
     );
   }
 }
