@@ -1,183 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../models/analysis_model.dart';
-import '../models/backtest_model.dart';
-import '../models/dashboard_model.dart';
-import '../models/learning_log_model.dart';
-import '../models/paper_trade_model.dart';
-import '../models/performance_model.dart';
-import '../models/scheduler_model.dart';
-import '../models/strategy_model.dart';
-
-import '../services/api_service.dart';
-
+import '../state/app_state.dart';
 import '../utils/constants.dart';
+import '../widgets/common_widgets.dart';
+import '../widgets/skeleton_loader.dart';
+import '../widgets/symbol_timeframe_selector.dart';
+import 'analysis_screen.dart';
+import 'reports_screen.dart';
+import 'trades_screen.dart';
 
-import '../widgets/analysis_card.dart';
-import '../widgets/chart_card.dart';
-import '../widgets/learning_card.dart';
-import '../widgets/paper_trade_card.dart';
-import '../widgets/performance_card.dart';
-import '../widgets/scheduler_card.dart';
-import '../widgets/signal_card.dart';
-import '../widgets/strategy_card.dart';
-
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
+  Widget build(BuildContext context) {
+    final state = context.watch<AppState>();
 
-class _DashboardScreenState extends State<DashboardScreen> {
-  final ApiService _api = ApiService.instance;
-
-  bool _loading = true;
-
-  bool _refreshing = false;
-
-  String? _error;
-
-  AnalysisModel? analysis;
-
-  DashboardModel? dashboard;
-
-  PerformanceModel? performance;
-
-  PaperTradeModel? paperTrade;
-
-  StrategyModel? strategy;
-
-  SchedulerDashboardModel? scheduler;
-
-  LearningLogModel learning = LearningLogModel.empty();
-
-  BacktestDashboard? backtest;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _loadDashboard();
-  }
-
-  /// ===============================================================
-  /// Load Dashboard
-  /// ===============================================================
-
-  Future<void> _loadDashboard() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    try {
-      final results = await Future.wait([
-        _api.getAnalysis(),
-        _api.loadDashboard(),
-        _api.getPerformance(),
-        _api.getPaperTrades(),
-        _api.getStrategy(),
-        _api.getSchedulerDashboard(),
-        _api.getLearningLogs(),
-      ]);
-
-      if (!mounted) return;
-
-      setState(() {
-        analysis = results[0] as AnalysisModel;
-        dashboard = results[1] as DashboardModel;
-        performance = results[2] as PerformanceModel;
-        paperTrade = results[3] as PaperTradeModel;
-        strategy = results[4] as StrategyModel;
-        scheduler = results[5] as SchedulerDashboardModel;
-        learning = results[6] as LearningLogModel;
-
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _loading = false;
-        _error = e.toString();
-      });
-    }
-  }
-
-  /// ===============================================================
-  /// Refresh Dashboard
-  /// ===============================================================
-
-  Future<void> _refreshDashboard() async {
-    setState(() {
-      _refreshing = true;
-    });
-
-    try {
-      await _loadDashboard();
-    } finally {
-      if (mounted) {
-        setState(() {
-          _refreshing = false;
-        });
-      }
-    }
-  }
-
-  /// ===============================================================
-  /// App Bar
-  /// ===============================================================
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      title: const Text(
-        "Market Dashboard",
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      centerTitle: false,
-      elevation: 0,
-      actions: [
-        if (_refreshing)
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: SizedBox(
-              width: 22,
-              height: 22,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          )
-        else
-          IconButton(
-            tooltip: "Refresh",
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshDashboard,
-          ),
-
-        IconButton(
-          tooltip: "Settings",
-          icon: const Icon(Icons.settings),
-          onPressed: () {
-            Navigator.pushNamed(context, "/settings");
-          },
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Market Dashboard',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            onPressed: state.refreshHomeData,
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: state.isLoading
+            ? _buildLoading()
+            : state.errorMessage != null
+            ? _buildError(state.errorMessage!, state)
+            : _buildDashboard(context, state),
+      ),
+    );
+  }
+
+  Widget _buildLoading() {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const SkeletonLoader(height: 120),
+        const SizedBox(height: 16),
+        const SkeletonLoader(height: 100),
+        const SizedBox(height: 16),
+        const SkeletonLoader(height: 100),
       ],
     );
   }
 
-  /// ===============================================================
-  /// Loading Widget
-  /// ===============================================================
-
-  Widget _buildLoading() {
-    return const Center(child: CircularProgressIndicator());
-  }
-
-  /// ===============================================================
-  /// Error Widget
-  /// ===============================================================
-
-  Widget _buildError() {
+  Widget _buildError(String errorMessage, AppState state) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -185,25 +63,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, size: 70, color: Colors.red),
-
             const SizedBox(height: 20),
-
-            Text("Failed to load dashboard", style: AppTextStyles.title),
-
+            const Text('Unable to load dashboard', style: AppTextStyles.title),
             const SizedBox(height: 10),
-
             Text(
-              _error ?? "Unknown error",
+              errorMessage,
               textAlign: TextAlign.center,
               style: AppTextStyles.body,
             ),
-
             const SizedBox(height: 24),
-
             ElevatedButton.icon(
-              onPressed: _loadDashboard,
+              onPressed: state.refreshHomeData,
               icon: const Icon(Icons.refresh),
-              label: const Text("Retry"),
+              label: const Text('Retry'),
             ),
           ],
         ),
@@ -211,115 +83,204 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ===============================================================
-  /// Floating Action Button
-  /// ===============================================================
+  Widget _buildDashboard(BuildContext context, AppState state) {
+    final signal = state.signal;
+    final confidence = state.confidence;
+    final currentPrice = state.currentPrice;
+    final balance = state.currentBalance;
+    final openTrades = state.openTrades;
+    final todayPnl = state.todayProfitLoss;
 
-  Widget _buildFab() {
-    return FloatingActionButton(
-      onPressed: _refreshDashboard,
-      child: const Icon(Icons.refresh),
-    );
-  }
-
-  /// ===============================================================
-  /// Dashboard Body
-  /// ===============================================================
-
-  Widget _buildDashboard() {
-    if (analysis == null ||
-        performance == null ||
-        paperTrade == null ||
-        strategy == null ||
-        scheduler == null) {
-      return const Center(child: Text("Dashboard data unavailable"));
-    }
-
-    return RefreshIndicator(
-      onRefresh: _refreshDashboard,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            /// =====================================================
-            /// Analysis
-            /// =====================================================
-            AnalysisCard(analysis: analysis!),
-
-            const SizedBox(height: 16),
-
-            /// =====================================================
-            /// Signal
-            /// =====================================================
-            SignalCard(analysis: analysis!),
-
-            const SizedBox(height: 16),
-
-            /// =====================================================
-            /// Chart
-            /// =====================================================
-            ChartCard(analysis: analysis!),
-
-            const SizedBox(height: 16),
-
-            /// =====================================================
-            /// Performance
-            /// =====================================================
-            PerformanceCard(performance: performance!),
-
-            const SizedBox(height: 16),
-
-            /// =====================================================
-            /// Paper Trading
-            /// =====================================================
-            PaperTradeCard(paperTrade: paperTrade!),
-
-            const SizedBox(height: 16),
-
-            /// =====================================================
-            /// Strategy
-            /// =====================================================
-            StrategyCard(strategy: strategy!),
-
-            const SizedBox(height: 16),
-
-            /// =====================================================
-            /// Scheduler
-            /// =====================================================
-            SchedulerCard(scheduler: scheduler!),
-
-            const SizedBox(height: 16),
-
-            /// =====================================================
-            /// Learning
-            /// =====================================================
-            LearningCard(learning: learning),
-
-            const SizedBox(height: 24),
-          ],
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        SymbolTimeframeSelector(
+          symbol: state.selectedSymbol,
+          timeframe: state.selectedTimeframe,
+          onSymbolChanged: state.setSymbol,
+          onTimeframeChanged: state.setTimeframe,
         ),
-      ),
+        const SizedBox(height: 16),
+        DashboardCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Market Snapshot', style: AppTextStyles.title),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: MetricTile(
+                      title: 'Signal',
+                      value: signal,
+                      icon: signal == AppConstants.buy
+                          ? Icons.trending_up
+                          : signal == AppConstants.sell
+                          ? Icons.trending_down
+                          : Icons.pause_circle,
+                      valueColor: signal == AppConstants.buy
+                          ? AppColors.buy
+                          : signal == AppConstants.sell
+                          ? AppColors.sell
+                          : AppColors.wait,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: MetricTile(
+                      title: 'Confidence',
+                      value: '$confidence%',
+                      icon: Icons.verified,
+                      valueColor: confidence >= 70
+                          ? AppColors.buy
+                          : confidence >= 40
+                          ? AppColors.wait
+                          : AppColors.sell,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: MetricTile(
+                      title: 'Current Price',
+                      value: '₹${currentPrice.toStringAsFixed(2)}',
+                      icon: Icons.attach_money,
+                      valueColor: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: MetricTile(
+                      title: 'Balance',
+                      value: '₹${balance.toStringAsFixed(2)}',
+                      icon: Icons.account_balance_wallet,
+                      valueColor: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: MetricTile(
+                      title: 'Open Trades',
+                      value: openTrades.toString(),
+                      icon: Icons.swap_horiz,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: MetricTile(
+                      title: "Today's P/L",
+                      value: '₹${todayPnl.toStringAsFixed(2)}',
+                      icon: Icons.trending_flat,
+                      valueColor: todayPnl >= 0
+                          ? AppColors.buy
+                          : AppColors.sell,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        DashboardCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Quick Actions', style: AppTextStyles.title),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _ActionChip(
+                    icon: Icons.analytics,
+                    label: 'View Analysis',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const Scaffold(
+                            body: SafeArea(child: AnalysisScreen()),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  _ActionChip(
+                    icon: Icons.show_chart,
+                    label: 'View Trades',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const Scaffold(
+                            body: SafeArea(child: TradesScreen()),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  _ActionChip(
+                    icon: Icons.insights,
+                    label: 'View Reports',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const Scaffold(
+                            body: SafeArea(child: ReportsScreen()),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
+}
 
-  /// ===============================================================
-  /// Build
-  /// ===============================================================
+class _ActionChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ActionChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-
-      floatingActionButton: _buildFab(),
-
-      body: SafeArea(
-        child: _loading
-            ? _buildLoading()
-            : _error != null
-            ? _buildError()
-            : _buildDashboard(),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: AppColors.primary, size: 20),
+            const SizedBox(width: 10),
+            Text(label, style: AppTextStyles.body),
+          ],
+        ),
       ),
     );
   }

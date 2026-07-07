@@ -12,14 +12,12 @@ class ChartCard extends StatelessWidget {
 
   const ChartCard({super.key, required this.analysis, this.onRefresh});
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return DashboardCard(
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           _buildHeader(),
 
           const SizedBox(height: 20),
@@ -121,7 +119,7 @@ class ChartCard extends StatelessWidget {
 
           belowBarData: BarAreaData(
             show: true,
-            color: AppColors.primary.withOpacity(.15),
+            color: AppColors.primary.withAlpha(38),
           ),
         ),
       ],
@@ -616,7 +614,8 @@ class ChartCard extends StatelessWidget {
 
     return (_priceChange / _firstPrice) * 100;
   }
-    /// ===============================================================
+
+  /// ===============================================================
   /// Market Summary
   /// ===============================================================
 
@@ -628,61 +627,37 @@ class ChartCard extends StatelessWidget {
       child: DashboardCard(
         margin: EdgeInsets.zero,
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            const SectionHeader(
-              title: "Market Summary",
-              icon: Icons.insights,
-            ),
+            const SectionHeader(title: "Market Summary", icon: Icons.insights),
 
             const SizedBox(height: 16),
 
-            InfoRow(
-              title: "Symbol",
-              value: analysis.symbol,
-            ),
+            InfoRow(title: "Symbol", value: analysis.symbol),
 
             const DashboardDivider(),
 
-            InfoRow(
-              title: "Timeframe",
-              value: analysis.timeframe,
-            ),
+            InfoRow(title: "Timeframe", value: analysis.timeframe),
 
             const DashboardDivider(),
 
-            InfoRow(
-              title: "Candles",
-              value: analysis.chart.length.toString(),
-            ),
+            InfoRow(title: "Candles", value: analysis.chart.length.toString()),
 
             const DashboardDivider(),
 
             InfoRow(
               title: "Direction",
-              value: bullish
-                  ? "Bullish"
-                  : "Bearish",
-              valueColor: bullish
-                  ? AppColors.buy
-                  : AppColors.sell,
+              value: bullish ? "Bullish" : "Bearish",
+              valueColor: bullish ? AppColors.buy : AppColors.sell,
             ),
 
             const DashboardDivider(),
 
-            InfoRow(
-              title: "Market Regime",
-              value: analysis.marketRegime,
-            ),
+            InfoRow(title: "Market Regime", value: analysis.marketRegime),
 
             const DashboardDivider(),
 
-            InfoRow(
-              title: "Higher Timeframe",
-              value: analysis.higherTimeframe,
-            ),
+            InfoRow(title: "Higher Timeframe", value: analysis.higherTimeframe),
           ],
         ),
       ),
@@ -695,9 +670,7 @@ class ChartCard extends StatelessWidget {
 
   Widget _buildFooter() {
     return Padding(
-      padding: const EdgeInsets.only(
-        top: 24,
-      ),
+      padding: const EdgeInsets.only(top: 24),
       child: Center(
         child: Text(
           "Showing ${analysis.chart.length} candles • ${analysis.symbol} (${analysis.timeframe})",

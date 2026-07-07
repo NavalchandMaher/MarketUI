@@ -64,7 +64,6 @@ class AppConstants {
 
   static const List<String> timeframes = [
     "1m",
-    "3m",
     "5m",
     "15m",
     "30m",
@@ -80,10 +79,10 @@ class AppConstants {
   static const List<String> symbols = [
     "BTCUSDT",
     "ETHUSDT",
-    "BNBUSDT",
     "SOLUSDT",
-    "XRPUSDT",
-    "DOGEUSDT",
+    "BNBUSDT",
+    "NIFTY",
+    "BANKNIFTY",
   ];
 
   //==============================================================

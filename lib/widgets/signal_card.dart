@@ -95,9 +95,9 @@ class SignalCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: color.withOpacity(.12),
+        color: color.withAlpha(31),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withOpacity(.35)),
+        border: Border.all(color: color.withAlpha(89)),
       ),
       child: Column(
         children: [
