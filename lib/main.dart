@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'config.dart';
+import 'screens/app_shell.dart';
+import 'state/app_state.dart';
 import 'theme/app_theme.dart';
-import 'screens/dashboard_screen.dart';
-import 'screens/analysis_screen.dart';
-import 'screens/paper_trading_screen.dart';
-import 'screens/history_screen.dart';
-import 'screens/strategy_screen.dart';
-import 'screens/learning_screen.dart';
-import 'screens/reports_screen.dart';
-import 'screens/settings_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final appState = AppState();
 
-  runApp(const MarketAIApp());
+  runApp(
+    ChangeNotifierProvider<AppState>.value(
+      value: appState,
+      child: const MarketAIApp(),
+    ),
+  );
 }
 
 class MarketAIApp extends StatelessWidget {
@@ -21,23 +23,16 @@ class MarketAIApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Market AI V2',
-      debugShowCheckedModeBanner: false,
-
-      theme: AppTheme.darkTheme,
-
-      initialRoute: '/',
-
-      routes: {
-        '/': (_) => const DashboardScreen(),
-        '/analysis': (_) => const AnalysisScreen(),
-        '/paper': (_) => const PaperTradingScreen(),
-        '/history': (_) => const HistoryScreen(),
-        '/strategy': (_) => const StrategyScreen(),
-        '/learning': (_) => const LearningScreen(),
-        '/reports': (_) => const ReportsScreen(),
-        '/settings': (_) => const SettingsScreen(),
+    return Consumer<AppState>(
+      builder: (context, state, child) {
+        return MaterialApp(
+          title: AppConfig.appName,
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: state.themeMode,
+          home: const AppShell(),
+        );
       },
     );
   }

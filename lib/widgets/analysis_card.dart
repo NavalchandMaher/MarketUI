@@ -109,9 +109,9 @@ class AnalysisCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: signalColor.withOpacity(.12),
+        color: signalColor.withAlpha(31),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: signalColor.withOpacity(.35)),
+        border: Border.all(color: signalColor.withAlpha(89)),
       ),
       child: Column(
         children: [

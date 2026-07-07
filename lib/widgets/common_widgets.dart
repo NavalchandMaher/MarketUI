@@ -85,7 +85,7 @@ class SectionHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(.15),
+              color: AppColors.primary.withAlpha(38),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, size: 20, color: AppColors.primary),
@@ -240,9 +240,9 @@ class StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(.15),
+        color: color.withAlpha(38),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: color.withOpacity(.35)),
+        border: Border.all(color: color.withAlpha(89)),
       ),
       child: Text(
         text,

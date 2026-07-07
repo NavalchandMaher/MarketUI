@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../config.dart';
@@ -126,7 +127,7 @@ class ApiService {
 
   void _log(String message) {
     if (AppConfig.enableLogs) {
-      print("[API] $message");
+      debugPrint("[API] $message");
     }
   }
 
@@ -250,7 +251,7 @@ class ApiService {
   }) async {
     return loadDashboard(symbol: symbol, timeframe: timeframe);
   }
-    //==============================================================
+  //==============================================================
   // RUN BACKTEST
   //==============================================================
 
@@ -274,13 +275,9 @@ class ApiService {
   //==============================================================
 
   Future<BacktestHistoryModel> getBacktestHistory() async {
-    final json = await getRequest(
-      AppConfig.backtestHistory,
-    );
+    final json = await getRequest(AppConfig.backtestHistory);
 
-    return BacktestHistoryModel.fromJson(
-      List<dynamic>.from(json),
-    );
+    return BacktestHistoryModel.fromJson(List<dynamic>.from(json));
   }
 
   //==============================================================
@@ -328,11 +325,7 @@ class ApiService {
     String timeframe = AppConfig.defaultTimeframe,
     int days = 30,
   }) async {
-    return runBacktest(
-      symbol: symbol,
-      timeframe: timeframe,
-      days: days,
-    );
+    return runBacktest(symbol: symbol, timeframe: timeframe, days: days);
   }
 
   //==============================================================
@@ -364,14 +357,12 @@ class ApiService {
 
     return history.totalBacktests;
   }
-    //==============================================================
+  //==============================================================
   // SCHEDULER STATUS
   //==============================================================
 
   Future<SchedulerStatusModel> getSchedulerStatus() async {
-    final json = await getRequest(
-      AppConfig.schedulerStatus,
-    );
+    final json = await getRequest(AppConfig.schedulerStatus);
 
     return SchedulerStatusModel.fromJson(json);
   }
@@ -381,9 +372,7 @@ class ApiService {
   //==============================================================
 
   Future<SchedulerDashboardModel> getSchedulerDashboard() async {
-    final json = await getRequest(
-      AppConfig.schedulerDashboard,
-    );
+    final json = await getRequest(AppConfig.schedulerDashboard);
 
     return SchedulerDashboardModel.fromJson(json);
   }
@@ -394,9 +383,7 @@ class ApiService {
 
   Future<bool> runMarketCycle() async {
     try {
-      final json = await postRequest(
-        AppConfig.runMarket,
-      );
+      final json = await postRequest(AppConfig.runMarket);
 
       _log("Market Cycle Triggered");
 
@@ -421,9 +408,7 @@ class ApiService {
 
   Future<bool> runNightlyCycle() async {
     try {
-      final json = await postRequest(
-        AppConfig.runNightly,
-      );
+      final json = await postRequest(AppConfig.runNightly);
 
       _log("Nightly AI Triggered");
 
@@ -455,8 +440,7 @@ class ApiService {
   //==============================================================
 
   Future<bool> isSchedulerRunning() async {
-    final scheduler =
-        await getSchedulerStatus();
+    final scheduler = await getSchedulerStatus();
 
     return scheduler.running;
   }
@@ -466,8 +450,7 @@ class ApiService {
   //==============================================================
 
   Future<int> getSchedulerJobCount() async {
-    final scheduler =
-        await getSchedulerStatus();
+    final scheduler = await getSchedulerStatus();
 
     return scheduler.totalJobs;
   }
@@ -477,8 +460,7 @@ class ApiService {
   //==============================================================
 
   Future<SchedulerJob?> getNextJob() async {
-    final scheduler =
-        await getSchedulerStatus();
+    final scheduler = await getSchedulerStatus();
 
     if (scheduler.jobs.isEmpty) {
       return null;
@@ -492,8 +474,7 @@ class ApiService {
   //==============================================================
 
   Future<MarketHealth> getMarketHealth() async {
-    final dashboard =
-        await getSchedulerDashboard();
+    final dashboard = await getSchedulerDashboard();
 
     return dashboard.marketHealth;
   }
@@ -503,8 +484,7 @@ class ApiService {
   //==============================================================
 
   Future<List<JobInfo>> getSchedulerJobs() async {
-    final dashboard =
-        await getSchedulerDashboard();
+    final dashboard = await getSchedulerDashboard();
 
     return dashboard.jobs;
   }
