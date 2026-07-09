@@ -3,9 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
 import '../models/analysis_model.dart';
-import '../models/performance_model.dart';
-import '../models/paper_trade_model.dart';
-import '../services/api_service.dart';
+import '../services/v3_api_service.dart';
 import '../utils/constants.dart';
 
 class AppState extends ChangeNotifier {
@@ -13,7 +11,7 @@ class AppState extends ChangeNotifier {
   static const _symbolKey = 'selected_symbol';
   static const _timeframeKey = 'selected_timeframe';
 
-  final ApiService _api = ApiService.instance;
+  final V3ApiService _api = V3ApiService.instance;
 
   String selectedSymbol = AppConfig.defaultSymbol;
   String selectedTimeframe = AppConfig.defaultTimeframe;
@@ -24,8 +22,9 @@ class AppState extends ChangeNotifier {
   String? errorMessage;
 
   AnalysisModel? analysis;
-  PerformanceModel? performance;
-  PaperTradeModel? paperTrade;
+  Map<String, dynamic>? dashboardData;
+  List<dynamic> paperTrades = [];
+  Map<String, dynamic>? performance;
 
   AppState() {
     _initialize();
@@ -97,13 +96,13 @@ class AppState extends ChangeNotifier {
     try {
       final results = await Future.wait([
         _api.getAnalysis(symbol: selectedSymbol, timeframe: selectedTimeframe),
-        _api.getPerformance(),
-        _api.getPaperTrades(),
-      ]);
+        _api.getDashboard(),
+        _api.getPaperOpenTrades(),
+      ], eagerError: false);
 
       analysis = results[0] as AnalysisModel;
-      performance = results[1] as PerformanceModel;
-      paperTrade = results[2] as PaperTradeModel;
+      dashboardData = results[1] as Map<String, dynamic>?;
+      paperTrades = results[2] as List<dynamic>;
     } catch (error) {
       errorMessage = error.toString();
     } finally {
@@ -113,24 +112,14 @@ class AppState extends ChangeNotifier {
   }
 
   double get todayProfitLoss {
-    if (performance == null || performance!.daily.isEmpty) {
-      return 0;
-    }
-
-    final last = performance!.daily.last;
-    if (last is Map<String, dynamic>) {
-      final value =
-          last['profit'] ?? last['net_profit'] ?? last['pnl'] ?? last['close'];
-      if (value is num) return value.toDouble();
-    }
-
-    if (last is num) return last.toDouble();
-    return 0;
+    return dashboardData?['today_pl'] ?? 0.0;
   }
 
-  double get currentBalance => performance?.account.currentBalance ?? 0;
-  int get openTrades => paperTrade?.openTrades ?? 0;
+  double get currentBalance => dashboardData?['account_balance'] ?? 0.0;
+  int get openTrades => dashboardData?['open_trades'] ?? 0;
   int get confidence => analysis?.confidence ?? 0;
   String get signal => analysis?.signal ?? AppConstants.wait;
-  double get currentPrice => analysis?.price ?? 0;
+  double get currentPrice => analysis?.price ?? 0.0;
+  String get currentStrategy => dashboardData?['strategy_name'] ?? 'DEFAULT';
+  int get strategyVersion => dashboardData?['strategy_version'] ?? 1;
 }

@@ -67,7 +67,51 @@ class AppConfig {
   static const Duration apiTimeout = Duration(seconds: 30);
 
   //==============================================================
-  // API Endpoints
+  // API Endpoints - Auth
+  //==============================================================
+
+  static const String register = "/auth/register";
+
+  static const String login = "/auth/login";
+
+  static const String refresh = "/auth/refresh";
+
+  static const String logout = "/auth/logout";
+
+  static const String forgotPassword = "/auth/forgot-password";
+
+  static const String resetPassword = "/auth/reset-password";
+
+  static const String changePassword = "/auth/change-password";
+
+  static const String currentUser = "/users/me";
+
+  //==============================================================
+  // API Endpoints - V3
+  //==============================================================
+
+  static const String v3Dashboard = "/v3/dashboard";
+
+  static const String v3Strategies = "/v3/strategies";
+
+  static const String v3Paper = "/v3/paper";
+
+  static const String v3Backtest = "/v3/backtest/run";
+
+  static const String v3Reports = "/v3/reports/dashboard";
+
+  static const String v3Learning = "/v3/learning";
+
+  static const String v3Settings = "/v3/settings";
+
+  static const String v3Account = "/v3/account";
+
+  static const String v3Symbols = "/v3/symbols";
+
+  static const String v3Timeframes = "/v3/timeframes";
+
+  //==============================================================
+  // API Endpoints - Legacy
   //==============================================================
 
   static const String analysis = "/analysis";
@@ -118,9 +162,9 @@ class AppConfig {
   // App
   //==============================================================
 
-  static const String appName = "Market AI V2";
+  static const String appName = "Market AI V3";
 
-  static const String version = "2.0.0";
+  static const String version = "3.0.0";
 
   static const bool enableLogs = true;
 }
