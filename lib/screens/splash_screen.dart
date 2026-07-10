@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../services/api/auth_service.dart';
+import '../service_locator.dart';
 
 /// ===============================================================
 /// Splash Screen - Initial App Loading
@@ -40,8 +41,9 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(seconds: 2));
 
     try {
-      final authService = AuthService();
-      await authService.initialize();
+      // AuthService is already initialized in service_locator.dart
+      // Just get the singleton and check authentication status
+      final authService = getIt<AuthService>();
 
       if (!mounted) return;
 

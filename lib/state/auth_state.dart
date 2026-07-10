@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../service_locator.dart';
+import '../services/api/auth_service.dart';
 
 /// ===============================================================
 /// Auth State - Manages authentication state
 /// ===============================================================
 class AuthState extends ChangeNotifier {
-  final AuthService _authService = AuthService();
+  late final AuthService _authService;
 
   Map<String, dynamic>? _currentUser;
   bool _isLoading = false;
   String? _errorMessage;
+
+  AuthState() {
+    _authService = getIt<AuthService>();
+  }
 
   // ============================================================
   // Getters

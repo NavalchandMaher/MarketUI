@@ -17,7 +17,7 @@ class AppConfig {
   //==============================================================
 
   /// Android Emulator
-  static const String androidEmulator = "http://10.0.2.2:8000";
+  static const String androidEmulator = "http://localhost:8000";
 
   /// iOS Simulator
   static const String iosSimulator = "http://localhost:8000";
@@ -98,7 +98,7 @@ class AppConfig {
 
   static const String v3Backtest = "/v3/backtest/run";
 
-  static const String v3Reports = "/v3/reports/dashboard";
+  static const String v3Reports = "/v3/reports";
 
   static const String v3Learning = "/v3/learning";
 

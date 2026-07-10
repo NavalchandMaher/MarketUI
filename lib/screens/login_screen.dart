@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../services/api/auth_service.dart';
+import '../service_locator.dart';
 
 /// ===============================================================
 /// Login Screen
@@ -14,7 +15,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -34,7 +34,8 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await _authService.login(
+      final authService = getIt<AuthService>();
+      await authService.login(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
@@ -107,10 +108,13 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 20),
               TextField(
                 controller: _emailController,
+                style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'Enter your email',
                   labelText: 'Email',
                   prefixIcon: const Icon(Icons.email_outlined),
+                  fillColor: const Color(0xFF24292F),
+                  filled: true,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -121,10 +125,13 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
+                style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'Enter your password',
                   labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outlined),
+                  fillColor: const Color(0xFF24292F),
+                  filled: true,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword

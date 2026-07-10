@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../services/api/auth_service.dart';
+import '../service_locator.dart';
 
 /// ===============================================================
 /// Register Screen
@@ -16,7 +17,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _authService = AuthService();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -54,7 +54,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      await _authService.register(
+      final authService = getIt<AuthService>();
+      await authService.register(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         fullName: _fullNameController.text.trim(),

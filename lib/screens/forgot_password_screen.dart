@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../services/api/auth_service.dart';
+import '../service_locator.dart';
 
 /// ===============================================================
 /// Forgot Password Screen
@@ -13,7 +14,6 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
-  final _authService = AuthService();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -33,7 +33,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     });
 
     try {
-      await _authService.forgotPassword(_emailController.text.trim());
+      final authService = getIt<AuthService>();
+      await authService.forgotPassword(_emailController.text.trim());
 
       setState(() {
         _successMessage =

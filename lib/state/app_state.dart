@@ -3,7 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
 import '../models/analysis_model.dart';
-import '../services/v3_api_service.dart';
+import '../service_locator.dart';
+import '../services/api/v3_api_service.dart';
 import '../utils/constants.dart';
 
 class AppState extends ChangeNotifier {
@@ -11,7 +12,7 @@ class AppState extends ChangeNotifier {
   static const _symbolKey = 'selected_symbol';
   static const _timeframeKey = 'selected_timeframe';
 
-  final V3ApiService _api = V3ApiService.instance;
+  late final V3ApiService _api;
 
   String selectedSymbol = AppConfig.defaultSymbol;
   String selectedTimeframe = AppConfig.defaultTimeframe;
@@ -27,6 +28,7 @@ class AppState extends ChangeNotifier {
   Map<String, dynamic>? performance;
 
   AppState() {
+    _api = getIt<V3ApiService>();
     _initialize();
   }
 

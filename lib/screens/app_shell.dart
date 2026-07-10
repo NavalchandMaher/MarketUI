@@ -8,6 +8,14 @@ import 'dashboard_screen.dart';
 import 'reports_screen.dart';
 import 'settings_screen.dart';
 import 'trades_screen.dart';
+import 'settings/account_settings_screen.dart';
+import 'settings/app_settings_screen.dart';
+import 'trading/strategy_management_screen.dart';
+import 'trading/enhanced_paper_trading_screen.dart';
+import 'reports/enhanced_reports_screen.dart';
+import 'learning/learning_logs_screen.dart';
+import 'testing/backtest_testing_screen.dart';
+import 'scheduler_dashboard_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -168,6 +176,106 @@ class _AppShellState extends State<AppShell> {
               },
             ),
             const Divider(),
+            // Trading Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'Trading',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.dashboard_customize),
+              title: const Text('Strategy Management'),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToScreen(context, const StrategyManagementScreen());
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.trending_up),
+              title: const Text('Paper Trading'),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToScreen(context, const EnhancedPaperTradingScreen());
+              },
+            ),
+            const Divider(),
+            // Reports Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'Analysis',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.assessment),
+              title: const Text('Enhanced Reports'),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToScreen(context, const EnhancedReportsScreen());
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.school),
+              title: const Text('Learning Logs'),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToScreen(context, const LearningLogsScreen());
+              },
+            ),
+            const Divider(),
+            // Testing & Scheduler Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'Testing & Automation',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.science),
+              title: const Text('Backtest'),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToScreen(context, const BacktestTestingScreen());
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.schedule),
+              title: const Text('Scheduler'),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToScreen(context, const SchedulerDashboardScreen());
+              },
+            ),
+            const Divider(),
+            // Account Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'Account',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Account Settings'),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToScreen(context, const AccountSettingsScreen());
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.tune),
+              title: const Text('App Settings'),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToScreen(context, const AppSettingsScreen());
+              },
+            ),
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.logout_outlined),
               title: const Text('Logout'),
@@ -237,5 +345,9 @@ class _AppShellState extends State<AppShell> {
         ],
       ),
     );
+  }
+
+  void _navigateToScreen(BuildContext context, Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
   }
 }
