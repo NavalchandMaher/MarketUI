@@ -56,9 +56,10 @@ class BacktestProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final json = await _api.getRequest(
-        AppConfig.backtest,
-        cacheTtl: 0, // Don't cache backtest results
+      // POST request to /v3/backtest/run with parameters
+      final json = await _api.postRequest(
+        '/v3/backtest/run',
+        body: {'symbol': symbol, 'timeframe': timeframe, 'days': days},
       );
       _currentBacktest = json;
       _errorMessage = null;
@@ -84,7 +85,7 @@ class BacktestProvider extends ChangeNotifier {
 
     try {
       final response = await _api.getRequest(
-        AppConfig.backtestHistory,
+        '/v3/backtest/history',
         cacheTtl: 300, // Cache for 5 minutes
         forceRefresh: forceRefresh,
       );
@@ -107,7 +108,7 @@ class BacktestProvider extends ChangeNotifier {
   Future<Map<String, dynamic>?> getBacktestDetail(String backtestId) async {
     try {
       final response = await _api.getRequest(
-        '${AppConfig.v3Backtest}/$backtestId',
+        '/v3/backtest/$backtestId',
         cacheTtl: 300,
       );
       return response is Map<String, dynamic> ? response : null;
@@ -123,7 +124,7 @@ class BacktestProvider extends ChangeNotifier {
 
   Future<bool> deleteBacktest(String backtestId) async {
     try {
-      await _api.deleteRequest('${AppConfig.v3Backtest}/$backtestId');
+      await _api.deleteRequest('/v3/backtest/$backtestId');
       _backtestHistory.removeWhere((item) => item['id'] == backtestId);
       notifyListeners();
       print('[BACKTEST] Deleted backtest: $backtestId');

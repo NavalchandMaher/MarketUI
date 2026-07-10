@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'config.dart';
-import 'screens/app_shell.dart';
+import 'screens/responsive_app_shell.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
@@ -84,7 +84,7 @@ class MarketAIApp extends StatelessWidget {
             '/login': (context) => const LoginScreen(),
             '/register': (context) => const RegisterScreen(),
             '/forgot-password': (context) => const ForgotPasswordScreen(),
-            '/home': (context) => const AppShell(),
+            '/home': (context) => const ResponsiveAppShell(),
           },
         );
       },

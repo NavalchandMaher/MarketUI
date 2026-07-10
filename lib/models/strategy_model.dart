@@ -54,48 +54,37 @@ class StrategyModel {
     );
   }
 
-  factory StrategyModel.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory StrategyModel.fromJson(Map<String, dynamic> json) {
+    // Extract indicator_parameters if available
+    final indicatorParams = json["indicator_parameters"] ?? {};
+
     return StrategyModel(
-      name: json["name"] ?? "",
+      name: json["strategy_name"] ?? json["name"] ?? "",
 
       version: json["version"] ?? 1,
 
       buyThreshold:
-          json["buy_threshold"] ?? 3,
+          indicatorParams["buy_threshold"] ?? json["buy_threshold"] ?? 3,
 
       sellThreshold:
-          json["sell_threshold"] ?? -3,
+          indicatorParams["sell_threshold"] ?? json["sell_threshold"] ?? -3,
 
-      tpPercent:
-          (json["tp_percent"] ?? 2)
-              .toDouble(),
+      tpPercent: (json["tp"] ?? json["tp_percent"] ?? 2).toDouble(),
 
-      slPercent:
-          (json["sl_percent"] ?? 1)
-              .toDouble(),
+      slPercent: (json["sl"] ?? json["sl_percent"] ?? 1).toDouble(),
 
-      emaFast:
-          json["ema_fast"] ?? 20,
+      emaFast: indicatorParams["ema_fast"] ?? json["ema_fast"] ?? 20,
 
-      emaSlow:
-          json["ema_slow"] ?? 50,
+      emaSlow: indicatorParams["ema_slow"] ?? json["ema_slow"] ?? 50,
 
-      rsiBuy:
-          json["rsi_buy"] ?? 40,
+      rsiBuy: indicatorParams["rsi_buy"] ?? json["rsi_buy"] ?? 40,
 
-      rsiSell:
-          json["rsi_sell"] ?? 65,
+      rsiSell: indicatorParams["rsi_sell"] ?? json["rsi_sell"] ?? 65,
     );
   }
 
-  factory StrategyModel.fromRawJson(
-    String source,
-  ) =>
-      StrategyModel.fromJson(
-        jsonDecode(source),
-      );
+  factory StrategyModel.fromRawJson(String source) =>
+      StrategyModel.fromJson(jsonDecode(source));
 
   Map<String, dynamic> toJson() {
     return {
@@ -112,8 +101,7 @@ class StrategyModel {
     };
   }
 
-  String toRawJson() =>
-      jsonEncode(toJson());
+  String toRawJson() => jsonEncode(toJson());
 
   StrategyModel copyWith({
     String? name,
@@ -130,24 +118,14 @@ class StrategyModel {
     return StrategyModel(
       name: name ?? this.name,
       version: version ?? this.version,
-      buyThreshold:
-          buyThreshold ??
-              this.buyThreshold,
-      sellThreshold:
-          sellThreshold ??
-              this.sellThreshold,
-      tpPercent:
-          tpPercent ?? this.tpPercent,
-      slPercent:
-          slPercent ?? this.slPercent,
-      emaFast:
-          emaFast ?? this.emaFast,
-      emaSlow:
-          emaSlow ?? this.emaSlow,
-      rsiBuy:
-          rsiBuy ?? this.rsiBuy,
-      rsiSell:
-          rsiSell ?? this.rsiSell,
+      buyThreshold: buyThreshold ?? this.buyThreshold,
+      sellThreshold: sellThreshold ?? this.sellThreshold,
+      tpPercent: tpPercent ?? this.tpPercent,
+      slPercent: slPercent ?? this.slPercent,
+      emaFast: emaFast ?? this.emaFast,
+      emaSlow: emaSlow ?? this.emaSlow,
+      rsiBuy: rsiBuy ?? this.rsiBuy,
+      rsiSell: rsiSell ?? this.rsiSell,
     );
   }
 
@@ -155,16 +133,14 @@ class StrategyModel {
   /// Helper Getters
   /// ===========================================================
 
-  bool get isValid =>
-      name.isNotEmpty;
+  bool get isValid => name.isNotEmpty;
 
   double get riskRewardRatio {
     if (slPercent == 0) return 0;
     return tpPercent / slPercent;
   }
 
-  String get displayName =>
-      "$name v$version";
+  String get displayName => "$name v$version";
 
   @override
   String toString() {
@@ -194,6 +170,5 @@ rsiSell: $rsiSell
   }
 
   @override
-  int get hashCode =>
-      Object.hash(name, version);
+  int get hashCode => Object.hash(name, version);
 }

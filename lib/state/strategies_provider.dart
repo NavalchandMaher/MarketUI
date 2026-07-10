@@ -93,15 +93,25 @@ class StrategiesProvider extends ChangeNotifier {
 
     try {
       final strategyData = {
-        'name': name,
-        'buy_threshold': buyThreshold,
-        'sell_threshold': sellThreshold,
-        'tp_percent': tpPercent,
-        'sl_percent': slPercent,
-        'ema_fast': emaFast,
-        'ema_slow': emaSlow,
-        'rsi_buy': rsiBuy,
-        'rsi_sell': rsiSell,
+        'strategy_name': name,
+        'version': 1,
+        'enabled': true,
+        'paper_mode': true,
+        'live_mode': false,
+        'priority': 1,
+        'symbol': 'BTCUSDT',
+        'timeframe': '5m',
+        'risk_percent': 1.0,
+        'tp': tpPercent,
+        'sl': slPercent,
+        'indicator_parameters': {
+          'buy_threshold': buyThreshold,
+          'sell_threshold': sellThreshold,
+          'ema_fast': emaFast,
+          'ema_slow': emaSlow,
+          'rsi_buy': rsiBuy,
+          'rsi_sell': rsiSell,
+        },
       };
 
       final response = await _api.postRequest(
@@ -146,15 +156,25 @@ class StrategiesProvider extends ChangeNotifier {
 
     try {
       final strategyData = {
-        'name': name,
-        'buy_threshold': buyThreshold,
-        'sell_threshold': sellThreshold,
-        'tp_percent': tpPercent,
-        'sl_percent': slPercent,
-        'ema_fast': emaFast,
-        'ema_slow': emaSlow,
-        'rsi_buy': rsiBuy,
-        'rsi_sell': rsiSell,
+        'strategy_name': name,
+        'version': 1,
+        'enabled': true,
+        'paper_mode': true,
+        'live_mode': false,
+        'priority': 1,
+        'symbol': 'BTCUSDT',
+        'timeframe': '5m',
+        'risk_percent': 1.0,
+        'tp': tpPercent,
+        'sl': slPercent,
+        'indicator_parameters': {
+          'buy_threshold': buyThreshold,
+          'sell_threshold': sellThreshold,
+          'ema_fast': emaFast,
+          'ema_slow': emaSlow,
+          'rsi_buy': rsiBuy,
+          'rsi_sell': rsiSell,
+        },
       };
 
       final response = await _api.putRequest(

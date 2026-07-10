@@ -111,32 +111,32 @@ class AppConfig {
   static const String v3Timeframes = "/v3/timeframes";
 
   //==============================================================
-  // API Endpoints - Legacy
+  // API Endpoints - V3 (Legacy endpoints replaced with V3)
   //==============================================================
 
-  static const String analysis = "/analysis";
+  static const String analysis = "/v3/analysis";
 
-  static const String paperTrades = "/paper-trades";
+  static const String paperTrades = "/v3/paper/open";
 
-  static const String paperTradeHistory = "/paper-trades/history";
+  static const String paperTradeHistory = "/v3/paper/history";
 
-  static const String strategy = "/strategy";
+  static const String strategy = "/v3/strategies";
 
-  static const String performance = "/performance";
+  static const String performance = "/v3/reports/performance";
 
-  static const String learningLogs = "/learning-logs";
+  static const String learningLogs = "/v3/learning";
 
-  static const String backtest = "/backtest";
+  static const String backtest = "/v3/backtest/run";
 
-  static const String backtestHistory = "/backtest/history";
+  static const String backtestHistory = "/v3/backtest/history";
 
-  static const String schedulerStatus = "/scheduler/status";
+  static const String schedulerStatus = "/v3/scheduler/status";
 
-  static const String schedulerDashboard = "/scheduler/dashboard";
+  static const String schedulerDashboard = "/v3/scheduler/dashboard";
 
-  static const String runMarket = "/scheduler/run-market";
+  static const String runMarket = "/v3/scheduler/run-market";
 
-  static const String runNightly = "/scheduler/run-nightly";
+  static const String runNightly = "/v3/scheduler/run-nightly";
 
   //==============================================================
   // Theme
