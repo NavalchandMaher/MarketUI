@@ -11,6 +11,9 @@ import 'analysis_screen.dart';
 import 'reports_screen.dart';
 import 'settings_screen.dart';
 import 'trades_screen.dart';
+import 'history_screen.dart';
+import 'trading/strategy_management_screen.dart';
+import 'testing/backtest_testing_screen.dart';
 
 /// ===============================================================
 /// Responsive App Shell
@@ -32,6 +35,9 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
     AnalysisScreen(),
     TradesScreen(),
     ReportsScreen(),
+    StrategyManagementScreen(),
+    BacktestTestingScreen(),
+    HistoryScreen(),
     SettingsScreen(),
   ];
 
@@ -59,6 +65,24 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
       selectedIcon: Icons.insights,
       label: 'Reports',
       tooltip: 'Reports',
+    ),
+    NavigationItem(
+      icon: Icons.dashboard_customize,
+      selectedIcon: Icons.dashboard_customize,
+      label: 'Strategies',
+      tooltip: 'Strategy Management',
+    ),
+    NavigationItem(
+      icon: Icons.science_outlined,
+      selectedIcon: Icons.science,
+      label: 'Backtest',
+      tooltip: 'Backtest Testing',
+    ),
+    NavigationItem(
+      icon: Icons.history_outlined,
+      selectedIcon: Icons.history,
+      label: 'History',
+      tooltip: 'Backtest History',
     ),
     NavigationItem(
       icon: Icons.settings_outlined,
@@ -99,6 +123,10 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
   // ============================================================
 
   Widget _buildMobileLayout() {
+    // Clamp currentIndex to valid BottomNavigationBar range (0-4)
+    // Items 5-7 (Backtest, History, Settings) are accessed via menu only
+    final bottomNavIndex = _currentIndex < 5 ? _currentIndex : 0;
+
     return Scaffold(
       appBar: AppBar(
         title: ResponsiveText(
@@ -126,10 +154,10 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
           ],
         ),
         child: BottomNavigationBar(
-          currentIndex: _currentIndex,
+          currentIndex: bottomNavIndex,
           onTap: _onNavigationChanged,
           type: BottomNavigationBarType.fixed,
-          items: _navigationItems.map((item) {
+          items: _navigationItems.take(5).map((item) {
             return BottomNavigationBarItem(
               icon: Icon(item.icon),
               activeIcon: Icon(item.selectedIcon),
@@ -361,68 +389,116 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
   void _showMobileMenu() {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Drag Handle
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[400],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Menu Items
-              ..._navigationItems.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                final isSelected = _currentIndex == index;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final maxMenuHeight = screenHeight * 0.85; // Max 85% of screen
+        final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
-                return SmoothListTile(
-                  title: item.label,
-                  leading: item.icon,
-                  isSelected: isSelected,
-                  onTap: () {
-                    _onNavigationChanged(index);
-                    Navigator.pop(context);
-                  },
-                );
-              }),
-              const Divider(),
-              // Settings Option
-              SmoothListTile(
-                title: 'Theme',
-                leading: Icons.brightness_4,
-                onTap: () {
-                  final appState = context.read<AppState>();
-                  final currentMode = appState.themeMode;
-                  final nextMode = currentMode == ThemeMode.light
-                      ? ThemeMode.dark
-                      : ThemeMode.light;
-                  appState.setThemeMode(nextMode);
-                  Navigator.pop(context);
-                },
+        return SafeArea(
+          bottom: false,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxMenuHeight),
+            child: Padding(
+              padding: EdgeInsets.only(bottom: bottomPadding),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Fixed Drag Handle
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[400],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  // Scrollable Menu Items
+                  Flexible(
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Navigation Items
+                            ..._navigationItems.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final item = entry.value;
+                              final isSelected = _currentIndex == index;
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: SmoothListTile(
+                                  title: item.label,
+                                  leading: item.icon,
+                                  isSelected: isSelected,
+                                  onTap: () {
+                                    _onNavigationChanged(index);
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              );
+                            }),
+                            // Divider with padding
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Divider(
+                                height: 1,
+                                color: Colors.grey.withOpacity(0.3),
+                              ),
+                            ),
+                            // Settings Option
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: SmoothListTile(
+                                title: 'Theme',
+                                leading: Icons.brightness_4,
+                                onTap: () {
+                                  final appState = context.read<AppState>();
+                                  final currentMode = appState.themeMode;
+                                  final nextMode =
+                                      currentMode == ThemeMode.light
+                                      ? ThemeMode.dark
+                                      : ThemeMode.light;
+                                  appState.setThemeMode(nextMode);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ),
+                            // Logout Option
+                            SmoothListTile(
+                              title: 'Logout',
+                              leading: Icons.logout,
+                              onTap: () {
+                                final authState = context.read<AuthState>();
+                                authState.logout();
+                                Navigator.pop(context);
+                                Navigator.pushNamedAndRemoveUntil(
+                                  context,
+                                  '/login',
+                                  (route) => false,
+                                );
+                              },
+                            ),
+                            // Bottom padding for safety
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              SmoothListTile(
-                title: 'Logout',
-                leading: Icons.logout,
-                onTap: () {
-                  final authState = context.read<AuthState>();
-                  authState.logout();
-                  Navigator.pop(context);
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/login',
-                    (route) => false,
-                  );
-                },
-              ),
-            ],
+            ),
           ),
         );
       },
