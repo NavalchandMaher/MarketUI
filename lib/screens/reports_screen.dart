@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/performance_model.dart';
-import '../services/api_service.dart';
+import '../service_locator.dart';
+import '../services/api/v3_api_service.dart';
 
 import '../widgets/performance_card.dart';
 
@@ -17,7 +18,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   /// API
   /// ===============================================================
 
-  final ApiService _api = ApiService.instance;
+  final V3ApiService _api = getIt<V3ApiService>();
 
   /// ===============================================================
   /// State
@@ -53,12 +54,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
     });
 
     try {
-      final result = await _api.getPerformance();
+      final result = await _api.getPerformanceReport();
 
       if (!mounted) return;
 
       setState(() {
-        _performance = result;
+        _performance = PerformanceModel.fromJson(result);
         _loading = false;
       });
     } catch (e) {
@@ -81,12 +82,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
     });
 
     try {
-      final result = await _api.getPerformance();
+      final result = await _api.getPerformanceReport();
 
       if (!mounted) return;
 
       setState(() {
-        _performance = result;
+        _performance = PerformanceModel.fromJson(result);
       });
     } catch (e) {
       if (!mounted) return;

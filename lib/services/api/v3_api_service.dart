@@ -431,7 +431,7 @@ class V3ApiService {
     int days = 365,
   }) async {
     return await postRequest(
-      AppConfig.v3Backtest,
+      "${AppConfig.v3Backtest}/run",
       body: {"symbol": symbol, "timeframe": timeframe, "days": days},
     );
   }

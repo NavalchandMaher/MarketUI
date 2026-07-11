@@ -96,7 +96,7 @@ class AppConfig {
 
   static const String v3Paper = "/v3/paper";
 
-  static const String v3Backtest = "/v3/backtest/run";
+  static const String v3Backtest = "/v3/backtest";
 
   static const String v3Reports = "/v3/reports";
 

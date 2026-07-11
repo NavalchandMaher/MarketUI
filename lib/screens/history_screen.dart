@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/backtest_model.dart';
-import '../services/api_service.dart';
+import '../service_locator.dart';
+import '../services/api/v3_api_service.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -15,7 +16,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   /// API Service
   /// ===============================================================
 
-  final ApiService _api = ApiService.instance;
+  final V3ApiService _api = getIt<V3ApiService>();
 
   /// ===============================================================
   /// State
@@ -56,7 +57,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       if (!mounted) return;
 
       setState(() {
-        _history = result;
+        _history = BacktestHistoryModel.fromJson(List<dynamic>.from(result));
         _loading = false;
       });
     } catch (e) {
@@ -84,7 +85,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       if (!mounted) return;
 
       setState(() {
-        _history = result;
+        _history = BacktestHistoryModel.fromJson(List<dynamic>.from(result));
       });
     } catch (e) {
       if (!mounted) return;
