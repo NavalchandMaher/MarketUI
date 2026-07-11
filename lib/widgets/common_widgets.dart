@@ -32,7 +32,7 @@ class DashboardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final card = Card(
-      color: color ?? AppColors.card,
+      color: color ?? Theme.of(context).colorScheme.surfaceContainer,
       elevation: elevation ?? AppConstants.elevation,
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
@@ -97,18 +97,28 @@ class SectionHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: AppTextStyles.title),
+              Text(
+                title,
+                style: AppTextStyles.title.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
 
               if (subtitle != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: Text(subtitle!, style: AppTextStyles.small),
+                  child: Text(
+                    subtitle!,
+                    style: AppTextStyles.small.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ),
             ],
           ),
         ),
 
-        if (trailing != null) trailing!,
+        if (trailing != null) ...[trailing!],
       ],
     );
   }
@@ -146,7 +156,7 @@ class MetricTile extends StatelessWidget {
     Widget child = Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -155,16 +165,27 @@ class MetricTile extends StatelessWidget {
           Row(
             children: [
               if (icon != null)
-                Icon(icon, color: iconColor ?? AppColors.primary, size: 18),
+                Icon(
+                  icon,
+                  color: iconColor ?? Theme.of(context).colorScheme.primary,
+                  size: 18,
+                ),
               if (icon != null) const SizedBox(width: 6),
-              Expanded(child: Text(title, style: AppTextStyles.small)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTextStyles.small.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
             value,
             style: AppTextStyles.value.copyWith(
-              color: valueColor ?? AppColors.textPrimary,
+              color: valueColor ?? Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
@@ -210,12 +231,19 @@ class InfoRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
-          Expanded(child: Text(title, style: AppTextStyles.subtitle)),
+          Expanded(
+            child: Text(
+              title,
+              style: AppTextStyles.subtitle.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
           Text(
             value,
             style: AppTextStyles.body.copyWith(
               fontWeight: fontWeight ?? FontWeight.w600,
-              color: valueColor ?? AppColors.textPrimary,
+              color: valueColor ?? Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],

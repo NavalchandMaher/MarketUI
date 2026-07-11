@@ -176,24 +176,16 @@ class AppTextStyles {
   static const TextStyle heading = TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.bold,
-    color: AppColors.textPrimary,
   );
 
   static const TextStyle title = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
   );
 
-  static const TextStyle subtitle = TextStyle(
-    fontSize: 14,
-    color: AppColors.textSecondary,
-  );
+  static const TextStyle subtitle = TextStyle(fontSize: 14);
 
-  static const TextStyle body = TextStyle(
-    fontSize: 15,
-    color: AppColors.textPrimary,
-  );
+  static const TextStyle body = TextStyle(fontSize: 15);
 
   static const TextStyle value = TextStyle(
     fontSize: 20,
@@ -201,8 +193,5 @@ class AppTextStyles {
     color: AppColors.primary,
   );
 
-  static const TextStyle small = TextStyle(
-    fontSize: 12,
-    color: AppColors.textSecondary,
-  );
+  static const TextStyle small = TextStyle(fontSize: 12);
 }

@@ -228,7 +228,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: signalColor.withOpacity(0.14),
+                  color: signalColor.withAlpha((0.14 * 255).round()),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
