@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../models/analysis_model.dart';
 import '../services/api_service.dart';
-
-import '../widgets/analysis_card.dart';
+import '../utils/constants.dart';
+import '../utils/responsive.dart';
 import '../widgets/chart_card.dart';
-import '../widgets/signal_card.dart';
+import '../widgets/common_widgets.dart';
 
 class AnalysisScreen extends StatefulWidget {
   const AnalysisScreen({super.key});
@@ -15,38 +15,18 @@ class AnalysisScreen extends StatefulWidget {
 }
 
 class _AnalysisScreenState extends State<AnalysisScreen> {
-  /// ===============================================================
-  /// API
-  /// ===============================================================
-
   final ApiService _api = ApiService.instance;
 
-  /// ===============================================================
-  /// State
-  /// ===============================================================
-
   bool _loading = true;
-
   bool _refreshing = false;
-
   String? _error;
-
   AnalysisModel? _analysis;
-
-  /// ===============================================================
-  /// Init
-  /// ===============================================================
 
   @override
   void initState() {
     super.initState();
-
     _loadAnalysis();
   }
-
-  /// ===============================================================
-  /// Load Analysis
-  /// ===============================================================
 
   Future<void> _loadAnalysis() async {
     setState(() {
@@ -56,26 +36,19 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
     try {
       final result = await _api.getAnalysis();
-
       if (!mounted) return;
-
       setState(() {
         _analysis = result;
         _loading = false;
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _loading = false;
         _error = e.toString();
       });
     }
   }
-
-  /// ===============================================================
-  /// Refresh Analysis
-  /// ===============================================================
 
   Future<void> _refreshAnalysis() async {
     setState(() {
@@ -84,15 +57,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
     try {
       final result = await _api.getAnalysis();
-
       if (!mounted) return;
-
       setState(() {
         _analysis = result;
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _error = e.toString();
       });
@@ -105,17 +75,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     }
   }
 
-  /// ===============================================================
-  /// App Bar
-  /// ===============================================================
-
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       title: const Text(
-        "Market Analysis",
+        'Market Analysis',
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
-      centerTitle: false,
       elevation: 0,
       actions: [
         if (_refreshing)
@@ -129,7 +94,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           )
         else
           IconButton(
-            tooltip: "Refresh",
+            tooltip: 'Refresh',
             icon: const Icon(Icons.refresh),
             onPressed: _refreshAnalysis,
           ),
@@ -137,17 +102,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     );
   }
 
-  /// ===============================================================
-  /// Loading Widget
-  /// ===============================================================
-
   Widget _buildLoading() {
     return const Center(child: CircularProgressIndicator());
   }
-
-  /// ===============================================================
-  /// Error Widget
-  /// ===============================================================
 
   Widget _buildError() {
     return Center(
@@ -157,34 +114,24 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, color: Colors.red, size: 70),
-
             const SizedBox(height: 20),
-
             const Text(
-              "Unable to load analysis",
+              'Unable to load analysis',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 12),
-
-            Text(_error ?? "Unknown Error", textAlign: TextAlign.center),
-
+            Text(_error ?? 'Unknown Error', textAlign: TextAlign.center),
             const SizedBox(height: 24),
-
             ElevatedButton.icon(
               onPressed: _loadAnalysis,
               icon: const Icon(Icons.refresh),
-              label: const Text("Retry"),
+              label: const Text('Retry'),
             ),
           ],
         ),
       ),
     );
   }
-
-  /// ===============================================================
-  /// Empty Widget
-  /// ===============================================================
 
   Widget _buildEmpty() {
     return const Center(
@@ -194,18 +141,14 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.analytics_outlined, size: 70, color: Colors.grey),
-
             SizedBox(height: 20),
-
             Text(
-              "No Analysis Available",
+              'No Analysis Available',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-
             SizedBox(height: 8),
-
             Text(
-              "Please refresh to fetch market analysis.",
+              'Please refresh to fetch market analysis.',
               textAlign: TextAlign.center,
             ),
           ],
@@ -213,10 +156,6 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       ),
     );
   }
-
-  /// ===============================================================
-  /// Analysis Dashboard
-  /// ===============================================================
 
   Widget _buildAnalysisDashboard() {
     if (_analysis == null) {
@@ -227,38 +166,247 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       onRefresh: _refreshAnalysis,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveSize.getPadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            /// ===================================================
-            /// Analysis Card
-            /// ===================================================
-            AnalysisCard(analysis: _analysis!, onRefresh: _refreshAnalysis),
-
+            _buildOverviewCard(_analysis!),
             const SizedBox(height: 16),
-
-            /// ===================================================
-            /// Signal Card
-            /// ===================================================
-            SignalCard(analysis: _analysis!),
-
-            const SizedBox(height: 16),
-
-            /// ===================================================
-            /// Chart Card
-            /// ===================================================
             ChartCard(analysis: _analysis!),
-
+            const SizedBox(height: 16),
+            _buildIndicatorGrid(_analysis!),
+            const SizedBox(height: 16),
+            _buildStrategySummary(_analysis!),
+            const SizedBox(height: 16),
+            _buildReasonCard(_analysis!),
             const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
-    /// ===============================================================
-  /// Build
-  /// ===============================================================
+
+  Widget _buildOverviewCard(AnalysisModel analysis) {
+    final signalColor = analysis.isBuy
+        ? AppColors.buy
+        : analysis.isSell
+        ? AppColors.sell
+        : AppColors.wait;
+
+    return DashboardCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: signalColor.withOpacity(0.14),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  analysis.isBuy
+                      ? Icons.trending_up
+                      : analysis.isSell
+                      ? Icons.trending_down
+                      : Icons.pause_circle_outline,
+                  color: signalColor,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      analysis.signal,
+                      style: AppTextStyles.value.copyWith(color: signalColor),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${analysis.symbol} • ${analysis.timeframe}',
+                      style: AppTextStyles.subtitle,
+                    ),
+                  ],
+                ),
+              ),
+              StatusChip(
+                text: analysis.marketRegime,
+                color: analysis.isBullish
+                    ? AppColors.buy
+                    : analysis.isBearish
+                    ? AppColors.sell
+                    : AppColors.wait,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              MetricTile(
+                title: 'Confidence',
+                value: '${analysis.confidence}%',
+                icon: Icons.shield,
+                valueColor: signalColor,
+              ),
+              MetricTile(
+                title: 'Score',
+                value: analysis.score.toString(),
+                icon: Icons.speed,
+                valueColor: AppColors.primary,
+              ),
+              MetricTile(
+                title: 'Price',
+                value: '₹${analysis.price.toStringAsFixed(2)}',
+                icon: Icons.attach_money,
+                valueColor: AppColors.primary,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIndicatorGrid(AnalysisModel analysis) {
+    return DashboardCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(
+            title: 'Market Indicators',
+            subtitle: 'Visual indicator summary',
+            icon: Icons.bar_chart,
+          ),
+          const SizedBox(height: 16),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: ResponsiveBreakpoints.isTablet(context) ? 3 : 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.45,
+            children: [
+              MetricTile(
+                title: 'RSI',
+                value: analysis.indicators.rsi.toStringAsFixed(2),
+                icon: Icons.speed,
+                valueColor: _getRsiColor(analysis.indicators.rsi),
+              ),
+              MetricTile(
+                title: 'ADX',
+                value: analysis.indicators.adx.toStringAsFixed(2),
+                icon: Icons.trending_up,
+                valueColor: _getAdxColor(analysis.indicators.adx),
+              ),
+              MetricTile(
+                title: 'MACD',
+                value: analysis.indicators.macd.toStringAsFixed(2),
+                icon: Icons.timeline,
+                valueColor: analysis.indicators.macd >= 0
+                    ? AppColors.buy
+                    : AppColors.sell,
+              ),
+              MetricTile(
+                title: 'PCR',
+                value: analysis.indicators.pcr.toStringAsFixed(2),
+                icon: Icons.balance,
+                valueColor: _getPcrColor(analysis.indicators.pcr),
+              ),
+              MetricTile(
+                title: 'Volume',
+                value: analysis.indicators.volumeRatio.toStringAsFixed(2),
+                icon: Icons.bar_chart,
+                valueColor: _getVolumeColor(analysis.indicators.volumeRatio),
+              ),
+              MetricTile(
+                title: 'OI Change',
+                value: '${analysis.indicators.oiChangePct.toStringAsFixed(2)}%',
+                icon: Icons.swap_vert,
+                valueColor: analysis.indicators.oiChangePct >= 0
+                    ? AppColors.buy
+                    : AppColors.sell,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStrategySummary(AnalysisModel analysis) {
+    return DashboardCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(
+            title: 'Strategy Summary',
+            subtitle: 'Core trade configuration',
+            icon: Icons.auto_graph,
+          ),
+          const SizedBox(height: 16),
+          InfoRow(title: 'Strategy', value: analysis.strategy.name),
+          const Divider(),
+          InfoRow(title: 'TP', value: '${analysis.strategy.tpPercent}%'),
+          const Divider(),
+          InfoRow(title: 'SL', value: '${analysis.strategy.slPercent}%'),
+          const Divider(),
+          InfoRow(
+            title: 'Buy Threshold',
+            value: analysis.strategy.buyThreshold.toString(),
+          ),
+          const Divider(),
+          InfoRow(
+            title: 'Sell Threshold',
+            value: analysis.strategy.sellThreshold.toString(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReasonCard(AnalysisModel analysis) {
+    return DashboardCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(
+            title: 'AI Insight',
+            subtitle: 'Why this signal was generated',
+            icon: Icons.psychology,
+          ),
+          const SizedBox(height: 12),
+          Text(analysis.reason, style: AppTextStyles.body),
+        ],
+      ),
+    );
+  }
+
+  Color _getRsiColor(double rsi) {
+    if (rsi >= 70) return AppColors.sell;
+    if (rsi <= 30) return AppColors.buy;
+    return AppColors.wait;
+  }
+
+  Color _getAdxColor(double adx) {
+    return adx >= 25 ? AppColors.buy : AppColors.wait;
+  }
+
+  Color _getPcrColor(double pcr) {
+    if (pcr > 1.2) return AppColors.buy;
+    if (pcr < 0.7) return AppColors.sell;
+    return AppColors.wait;
+  }
+
+  Color _getVolumeColor(double ratio) {
+    if (ratio >= 1.5) return AppColors.buy;
+    if (ratio <= 0.5) return AppColors.sell;
+    return AppColors.primary;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -268,8 +416,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         child: _loading
             ? _buildLoading()
             : _error != null
-                ? _buildError()
-                : _buildAnalysisDashboard(),
+            ? _buildError()
+            : _buildAnalysisDashboard(),
       ),
     );
   }
