@@ -23,7 +23,7 @@ class AppConfig {
   static const String iosSimulator = "http://localhost:10000";
 
   /// Physical Device
-  static const String localNetwork = "http://192.168.1.100:8000";
+  static const String localNetwork = "http://192.168.1.100:10000";
 
   /// Production
   static const String production = "https://your-production-api.com";
@@ -127,6 +127,8 @@ class AppConfig {
   static const String learningLogs = "/v3/learning";
 
   static const String backtest = "/v3/backtest/run";
+  // Async backtest endpoint (starts job and returns backtest_id)
+  static const String backtestAsync = "/v3/backtest/async";
 
   static const String backtestHistory = "/v3/backtest/history";
 

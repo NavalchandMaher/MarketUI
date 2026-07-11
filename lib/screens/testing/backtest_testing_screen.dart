@@ -211,7 +211,7 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
           ),
           const SizedBox(height: 16),
 
-          // Error Message
+          // Status Messages
           if (provider.errorMessage != null)
             Container(
               padding: const EdgeInsets.all(12),
@@ -223,6 +223,20 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
               child: Text(
                 provider.errorMessage!,
                 style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ),
+          if (provider.successMessage != null)
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green, width: 0.5),
+              ),
+              child: Text(
+                provider.successMessage!,
+                style: const TextStyle(color: Colors.green, fontSize: 12),
               ),
             ),
 

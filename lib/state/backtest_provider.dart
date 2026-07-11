@@ -14,6 +14,7 @@ class BacktestProvider extends ChangeNotifier {
   bool _isRunning = false;
   bool _isLoading = false;
   String? _errorMessage;
+  String? _successMessage;
 
   // Backtest parameters
   String _symbol = "BTCUSDT";
@@ -33,6 +34,7 @@ class BacktestProvider extends ChangeNotifier {
   bool get isRunning => _isRunning;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  String? get successMessage => _successMessage;
 
   String get symbol => _symbol;
   String get timeframe => _timeframe;
@@ -50,21 +52,50 @@ class BacktestProvider extends ChangeNotifier {
     _isRunning = true;
     _isLoading = true;
     _errorMessage = null;
+    _successMessage = null;
     _symbol = symbol;
     _timeframe = timeframe;
     _days = days;
     notifyListeners();
 
     try {
-      // POST request to /v3/backtest/run with parameters
-      final json = await _api.postRequest(
-        '/v3/backtest/run',
+      // POST request to async backtest endpoint with parameters
+      final response = await _api.postRequest(
+        AppConfig.backtestAsync,
         body: {'symbol': symbol, 'timeframe': timeframe, 'days': days},
       );
-      _currentBacktest = json;
-      _errorMessage = null;
-      print('[BACKTEST] Backtest completed: $symbol $timeframe for $days days');
+
+      final backtestId =
+          response is Map<String, dynamic> && response['backtest_id'] != null
+          ? response['backtest_id'] as String
+          : null;
+
+      if (backtestId == null) {
+        throw Exception('Backtest start failed');
+      }
+
+      const pollInterval = Duration(seconds: 3);
+      String status = 'running';
+      while (status == 'running') {
+        await Future.delayed(pollInterval);
+        final stat = await _api.getRequest('/v3/backtest/$backtestId/status');
+        if (stat is Map<String, dynamic> && stat['status'] != null) {
+          status = stat['status'] as String;
+        } else {
+          throw Exception('Invalid backtest status response');
+        }
+      }
+
+      if (status == 'completed') {
+        _currentBacktest = await getBacktestDetail(backtestId);
+        await loadBacktestHistory(forceRefresh: true);
+        _successMessage = 'Backtest completed successfully';
+        _errorMessage = null;
+      } else {
+        throw Exception('Backtest ended with status: $status');
+      }
     } catch (e) {
+      _successMessage = null;
       _errorMessage = e.toString();
       print('[BACKTEST] Error running backtest: $e');
     } finally {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config.dart';
 import '../service_locator.dart';
 import '../services/api/v3_api_service.dart';
 
@@ -44,7 +45,7 @@ class BacktestingProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      String endpoint = '/v3/backtest/results';
+      String endpoint = AppConfig.backtestHistory;
       final params = <String, String>{};
       if (limit != null) params['limit'] = limit.toString();
       if (offset != null) params['offset'] = offset.toString();
@@ -79,10 +80,7 @@ class BacktestingProvider extends ChangeNotifier {
 
     try {
       _selectedResult =
-          await _api.getRequest(
-                '/v3/backtest/results/$backtestId',
-                cacheTtl: 600,
-              )
+          await _api.getRequest('/v3/backtest/$backtestId', cacheTtl: 600)
               as Map<String, dynamic>?;
       _errorMessage = null;
     } catch (e) {
@@ -121,10 +119,45 @@ class BacktestingProvider extends ChangeNotifier {
         if (initialCapital != null) 'initial_capital': initialCapital,
       };
 
-      final response = await _api.postRequest('/v3/backtest/run', body: params);
+      // Start async backtest job
+      final response = await _api.postRequest(
+        AppConfig.backtestAsync,
+        body: params,
+      );
 
-      // Reload results after running backtest
-      await loadResults(forceRefresh: true);
+      // If backend returned a backtest_id, poll for completion
+      final backtestId = response is Map && response['backtest_id'] != null
+          ? response['backtest_id'] as String
+          : null;
+      if (backtestId != null) {
+        // Poll status every 3 seconds until completed or failed
+        const pollInterval = Duration(seconds: 3);
+        String status = 'running';
+        while (status == 'running') {
+          await Future.delayed(pollInterval);
+          try {
+            final stat = await _api.getRequest(
+              '/v3/backtest/$backtestId/status',
+            );
+            if (stat is Map && stat['status'] != null) {
+              status = stat['status'] as String;
+            } else {
+              status = 'unknown';
+            }
+          } catch (_) {
+            // keep polling on transient errors
+          }
+        }
+
+        // When finished, load the result
+        if (status == 'completed') {
+          await loadResult(backtestId);
+          await loadResults(forceRefresh: true);
+        }
+      } else {
+        // Fallback: reload results immediately
+        await loadResults(forceRefresh: true);
+      }
       _errorMessage = null;
       notifyListeners();
       return true;
@@ -149,7 +182,7 @@ class BacktestingProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _api.deleteRequest('/v3/backtest/results/$backtestId');
+      await _api.deleteRequest('/v3/backtest/$backtestId');
 
       _backtestResults.removeWhere((r) => r['id'] == backtestId);
       if (_selectedResult?['id'] == backtestId) {
