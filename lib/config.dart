@@ -17,10 +17,10 @@ class AppConfig {
   //==============================================================
 
   /// Android Emulator
-  static const String androidEmulator = "http://localhost:8000";
+  static const String androidEmulator = "http://localhost:10000";
 
   /// iOS Simulator
-  static const String iosSimulator = "http://localhost:8000";
+  static const String iosSimulator = "http://localhost:10000";
 
   /// Physical Device
   static const String localNetwork = "http://192.168.1.100:8000";

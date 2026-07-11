@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/strategy_model.dart';
+import '../../screens/trading/strategy_builder_screen.dart';
 import '../../state/strategies_provider.dart';
 
 /// ===============================================================
@@ -90,7 +92,11 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
                         if (value == 'edit') {
                           _showStrategyForm(context, strategy: strategy);
                         } else if (value == 'delete') {
-                          _showDeleteConfirm(context, strategy.name);
+                          _showDeleteConfirm(
+                            context,
+                            strategy.name,
+                            strategy.id,
+                          );
                         }
                       },
                     ),
@@ -105,14 +111,15 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
     );
   }
 
-  void _showStrategyForm(BuildContext context, {dynamic strategy}) {
-    showDialog(
-      context: context,
-      builder: (context) => _StrategyFormDialog(strategy: strategy),
+  void _showStrategyForm(BuildContext context, {StrategyModel? strategy}) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => StrategyBuilderScreen(strategy: strategy),
+      ),
     );
   }
 
-  void _showDeleteConfirm(BuildContext context, String name) {
+  void _showDeleteConfirm(BuildContext context, String name, String id) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -125,182 +132,13 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
           ),
           TextButton(
             onPressed: () {
-              context.read<StrategiesProvider>().deleteStrategy(name);
+              context.read<StrategiesProvider>().deleteStrategy(id);
               Navigator.pop(context);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _StrategyFormDialog extends StatefulWidget {
-  final dynamic strategy;
-
-  const _StrategyFormDialog({this.strategy});
-
-  @override
-  State<_StrategyFormDialog> createState() => _StrategyFormDialogState();
-}
-
-class _StrategyFormDialogState extends State<_StrategyFormDialog> {
-  late TextEditingController nameCtrl;
-  late TextEditingController buyThresholdCtrl;
-  late TextEditingController sellThresholdCtrl;
-  late TextEditingController tpCtrl;
-  late TextEditingController slCtrl;
-  late TextEditingController emaFastCtrl;
-  late TextEditingController emaSlowCtrl;
-  late TextEditingController rsiBuyCtrl;
-  late TextEditingController rsiSellCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    nameCtrl = TextEditingController(text: widget.strategy?.name ?? '');
-    buyThresholdCtrl = TextEditingController(
-      text: widget.strategy?.buyThreshold.toString() ?? '3',
-    );
-    sellThresholdCtrl = TextEditingController(
-      text: widget.strategy?.sellThreshold.toString() ?? '-3',
-    );
-    tpCtrl = TextEditingController(
-      text: widget.strategy?.tpPercent.toString() ?? '2',
-    );
-    slCtrl = TextEditingController(
-      text: widget.strategy?.slPercent.toString() ?? '1',
-    );
-    emaFastCtrl = TextEditingController(
-      text: widget.strategy?.emaFast.toString() ?? '20',
-    );
-    emaSlowCtrl = TextEditingController(
-      text: widget.strategy?.emaSlow.toString() ?? '50',
-    );
-    rsiBuyCtrl = TextEditingController(
-      text: widget.strategy?.rsiBuy.toString() ?? '40',
-    );
-    rsiSellCtrl = TextEditingController(
-      text: widget.strategy?.rsiSell.toString() ?? '65',
-    );
-  }
-
-  @override
-  void dispose() {
-    nameCtrl.dispose();
-    buyThresholdCtrl.dispose();
-    sellThresholdCtrl.dispose();
-    tpCtrl.dispose();
-    slCtrl.dispose();
-    emaFastCtrl.dispose();
-    emaSlowCtrl.dispose();
-    rsiBuyCtrl.dispose();
-    rsiSellCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.strategy != null ? 'Edit Strategy' : 'New Strategy'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameCtrl,
-              decoration: const InputDecoration(labelText: 'Strategy Name'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: buyThresholdCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Buy Threshold'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: sellThresholdCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Sell Threshold'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: tpCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'TP Percent'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: slCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'SL Percent'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: emaFastCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'EMA Fast'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: emaSlowCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'EMA Slow'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: rsiBuyCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'RSI Buy'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: rsiSellCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'RSI Sell'),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            if (widget.strategy != null) {
-              await context.read<StrategiesProvider>().updateStrategy(
-                id: widget.strategy.name,
-                name: nameCtrl.text,
-                buyThreshold: int.parse(buyThresholdCtrl.text),
-                sellThreshold: int.parse(sellThresholdCtrl.text),
-                tpPercent: double.parse(tpCtrl.text),
-                slPercent: double.parse(slCtrl.text),
-                emaFast: int.parse(emaFastCtrl.text),
-                emaSlow: int.parse(emaSlowCtrl.text),
-                rsiBuy: int.parse(rsiBuyCtrl.text),
-                rsiSell: int.parse(rsiSellCtrl.text),
-              );
-            } else {
-              await context.read<StrategiesProvider>().createStrategy(
-                name: nameCtrl.text,
-                buyThreshold: int.parse(buyThresholdCtrl.text),
-                sellThreshold: int.parse(sellThresholdCtrl.text),
-                tpPercent: double.parse(tpCtrl.text),
-                slPercent: double.parse(slCtrl.text),
-                emaFast: int.parse(emaFastCtrl.text),
-                emaSlow: int.parse(emaSlowCtrl.text),
-                rsiBuy: int.parse(rsiBuyCtrl.text),
-                rsiSell: int.parse(rsiSellCtrl.text),
-              );
-            }
-            if (mounted) Navigator.pop(context);
-          },
-          child: const Text('Save'),
-        ),
-      ],
     );
   }
 }

@@ -6,6 +6,8 @@ import 'dart:convert';
 /// ===============================================================
 
 class StrategyModel {
+  final String id;
+
   final String name;
 
   final int version;
@@ -27,6 +29,7 @@ class StrategyModel {
   final int rsiSell;
 
   const StrategyModel({
+    required this.id,
     required this.name,
     required this.version,
     required this.buyThreshold,
@@ -41,6 +44,7 @@ class StrategyModel {
 
   factory StrategyModel.empty() {
     return const StrategyModel(
+      id: "",
       name: "",
       version: 1,
       buyThreshold: 3,
@@ -59,6 +63,7 @@ class StrategyModel {
     final indicatorParams = json["indicator_parameters"] ?? {};
 
     return StrategyModel(
+      id: json["id"] ?? json["_id"]?.toString() ?? "",
       name: json["strategy_name"] ?? json["name"] ?? "",
 
       version: json["version"] ?? 1,
@@ -88,6 +93,7 @@ class StrategyModel {
 
   Map<String, dynamic> toJson() {
     return {
+      "id": id,
       "name": name,
       "version": version,
       "buy_threshold": buyThreshold,
@@ -104,6 +110,7 @@ class StrategyModel {
   String toRawJson() => jsonEncode(toJson());
 
   StrategyModel copyWith({
+    String? id,
     String? name,
     int? version,
     int? buyThreshold,
@@ -116,6 +123,7 @@ class StrategyModel {
     int? rsiSell,
   }) {
     return StrategyModel(
+      id: id ?? this.id,
       name: name ?? this.name,
       version: version ?? this.version,
       buyThreshold: buyThreshold ?? this.buyThreshold,
@@ -165,10 +173,11 @@ rsiSell: $rsiSell
     return identical(this, other) ||
         other is StrategyModel &&
             runtimeType == other.runtimeType &&
+            id == other.id &&
             name == other.name &&
             version == other.version;
   }
 
   @override
-  int get hashCode => Object.hash(name, version);
+  int get hashCode => Object.hash(id, name, version);
 }

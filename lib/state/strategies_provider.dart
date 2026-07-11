@@ -87,37 +87,37 @@ class StrategiesProvider extends ChangeNotifier {
     required int rsiBuy,
     required int rsiSell,
   }) async {
+    final strategyData = {
+      'strategy_name': name,
+      'version': 1,
+      'enabled': true,
+      'paper_mode': true,
+      'live_mode': false,
+      'priority': 1,
+      'symbol': 'BTCUSDT',
+      'timeframe': '5m',
+      'risk_percent': 1.0,
+      'tp': tpPercent,
+      'sl': slPercent,
+      'indicator_parameters': {
+        'buy_threshold': buyThreshold,
+        'sell_threshold': sellThreshold,
+        'ema_fast': emaFast,
+        'ema_slow': emaSlow,
+        'rsi_buy': rsiBuy,
+        'rsi_sell': rsiSell,
+      },
+    };
+    return await createStrategyFromPayload(strategyData);
+  }
+
+  Future<bool> createStrategyFromPayload(Map<String, dynamic> payload) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final strategyData = {
-        'strategy_name': name,
-        'version': 1,
-        'enabled': true,
-        'paper_mode': true,
-        'live_mode': false,
-        'priority': 1,
-        'symbol': 'BTCUSDT',
-        'timeframe': '5m',
-        'risk_percent': 1.0,
-        'tp': tpPercent,
-        'sl': slPercent,
-        'indicator_parameters': {
-          'buy_threshold': buyThreshold,
-          'sell_threshold': sellThreshold,
-          'ema_fast': emaFast,
-          'ema_slow': emaSlow,
-          'rsi_buy': rsiBuy,
-          'rsi_sell': rsiSell,
-        },
-      };
-
-      final response = await _api.postRequest(
-        '/v3/strategies',
-        body: strategyData,
-      );
+      final response = await _api.postRequest('/v3/strategies', body: payload);
 
       final newStrategy = StrategyModel.fromJson(response);
       _strategies.add(newStrategy);
@@ -150,44 +150,50 @@ class StrategiesProvider extends ChangeNotifier {
     required int rsiBuy,
     required int rsiSell,
   }) async {
+    final strategyData = {
+      'strategy_name': name,
+      'version': 1,
+      'enabled': true,
+      'paper_mode': true,
+      'live_mode': false,
+      'priority': 1,
+      'symbol': 'BTCUSDT',
+      'timeframe': '5m',
+      'risk_percent': 1.0,
+      'tp': tpPercent,
+      'sl': slPercent,
+      'indicator_parameters': {
+        'buy_threshold': buyThreshold,
+        'sell_threshold': sellThreshold,
+        'ema_fast': emaFast,
+        'ema_slow': emaSlow,
+        'rsi_buy': rsiBuy,
+        'rsi_sell': rsiSell,
+      },
+    };
+    return await updateStrategyFromPayload(id, strategyData);
+  }
+
+  Future<bool> updateStrategyFromPayload(
+    String id,
+    Map<String, dynamic> payload,
+  ) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final strategyData = {
-        'strategy_name': name,
-        'version': 1,
-        'enabled': true,
-        'paper_mode': true,
-        'live_mode': false,
-        'priority': 1,
-        'symbol': 'BTCUSDT',
-        'timeframe': '5m',
-        'risk_percent': 1.0,
-        'tp': tpPercent,
-        'sl': slPercent,
-        'indicator_parameters': {
-          'buy_threshold': buyThreshold,
-          'sell_threshold': sellThreshold,
-          'ema_fast': emaFast,
-          'ema_slow': emaSlow,
-          'rsi_buy': rsiBuy,
-          'rsi_sell': rsiSell,
-        },
-      };
-
       final response = await _api.putRequest(
         '/v3/strategies/$id',
-        body: strategyData,
+        body: payload,
       );
 
       final updated = StrategyModel.fromJson(response);
-      final index = _strategies.indexWhere((s) => s.name == name);
+      final index = _strategies.indexWhere((s) => s.id == id);
       if (index >= 0) {
         _strategies[index] = updated;
       }
-      if (_selectedStrategy?.name == name) {
+      if (_selectedStrategy?.id == id) {
         _selectedStrategy = updated;
       }
       _errorMessage = null;
@@ -203,6 +209,10 @@ class StrategiesProvider extends ChangeNotifier {
     }
   }
 
+  Future<Map<String, dynamic>> getStrategyPayload(String id) async {
+    return await _api.getStrategy(id);
+  }
+
   // ============================================================
   // Delete Strategy
   // ============================================================
@@ -215,8 +225,8 @@ class StrategiesProvider extends ChangeNotifier {
     try {
       await _api.deleteRequest('/v3/strategies/$id');
 
-      _strategies.removeWhere((s) => s.name == id);
-      if (_selectedStrategy?.name == id) {
+      _strategies.removeWhere((s) => s.id == id);
+      if (_selectedStrategy?.id == id) {
         _selectedStrategy = null;
       }
       _errorMessage = null;
