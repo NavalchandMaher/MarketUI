@@ -32,6 +32,7 @@ class AppState extends ChangeNotifier {
   bool isOnline = true;
 
   bool isLoading = false;
+  bool isRefreshing = false;
   bool isReady = false;
   String? errorMessage;
   String? notificationMessage;
@@ -161,9 +162,14 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> refreshHomeData() async {
-    if (isLoading) return;
+    if (isLoading || isRefreshing) return;
 
-    isLoading = true;
+    final initialLoad = analysis == null;
+    if (initialLoad) {
+      isLoading = true;
+    } else {
+      isRefreshing = true;
+    }
     errorMessage = null;
     notifyListeners();
 
@@ -191,7 +197,11 @@ class AppState extends ChangeNotifier {
         // Keep any cached analysis data if available.
       }
     } finally {
-      isLoading = false;
+      if (initialLoad) {
+        isLoading = false;
+      } else {
+        isRefreshing = false;
+      }
       notifyListeners();
     }
   }
