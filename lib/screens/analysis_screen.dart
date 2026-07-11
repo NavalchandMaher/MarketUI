@@ -6,6 +6,7 @@ import '../utils/constants.dart';
 import '../utils/responsive.dart';
 import '../widgets/chart_card.dart';
 import '../widgets/common_widgets.dart';
+import '../widgets/symbol_timeframe_selector.dart';
 
 class AnalysisScreen extends StatefulWidget {
   const AnalysisScreen({super.key});
@@ -17,6 +18,8 @@ class AnalysisScreen extends StatefulWidget {
 class _AnalysisScreenState extends State<AnalysisScreen> {
   final ApiService _api = ApiService.instance;
 
+  String _selectedSymbol = AppConstants.defaultSymbol;
+  String _selectedTimeframe = AppConstants.defaultTimeframe;
   bool _loading = true;
   bool _refreshing = false;
   String? _error;
@@ -35,7 +38,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     });
 
     try {
-      final result = await _api.getAnalysis();
+      final result = await _api.getAnalysis(
+        symbol: _selectedSymbol,
+        timeframe: _selectedTimeframe,
+      );
       if (!mounted) return;
       setState(() {
         _analysis = result;
@@ -56,7 +62,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     });
 
     try {
-      final result = await _api.getAnalysis();
+      final result = await _api.getAnalysis(
+        symbol: _selectedSymbol,
+        timeframe: _selectedTimeframe,
+      );
       if (!mounted) return;
       setState(() {
         _analysis = result;
@@ -170,6 +179,23 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            SymbolTimeframeSelector(
+              symbol: _selectedSymbol,
+              timeframe: _selectedTimeframe,
+              onSymbolChanged: (value) {
+                setState(() {
+                  _selectedSymbol = value;
+                });
+                _loadAnalysis();
+              },
+              onTimeframeChanged: (value) {
+                setState(() {
+                  _selectedTimeframe = value;
+                });
+                _loadAnalysis();
+              },
+            ),
+            const SizedBox(height: 16),
             _buildOverviewCard(_analysis!),
             const SizedBox(height: 16),
             ChartCard(analysis: _analysis!),
