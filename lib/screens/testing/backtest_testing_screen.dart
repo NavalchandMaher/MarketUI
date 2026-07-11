@@ -63,7 +63,7 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a1a),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Backtest'),
         centerTitle: true,
@@ -123,12 +123,8 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
           const SizedBox(height: 8),
           TextField(
             controller: _symbolController,
-            style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               hintText: "e.g., BTCUSDT",
-              hintStyle: const TextStyle(color: Colors.grey),
-              filled: true,
-              fillColor: const Color(0xFF24292F),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
@@ -154,9 +150,11 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
                   });
                 },
                 selectedColor: Colors.green,
-                backgroundColor: const Color(0xFF24292F),
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
                 labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey,
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.onSurface
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               );
             }).toList(),
@@ -169,12 +167,9 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
           TextField(
             controller: _daysController,
             keyboardType: TextInputType.number,
-            style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               hintText: "e.g., 30",
-              hintStyle: const TextStyle(color: Colors.grey),
               filled: true,
-              fillColor: const Color(0xFF24292F),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
@@ -188,7 +183,9 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
           ElevatedButton(
             onPressed: provider.isRunning ? null : _runBacktest,
             style: ElevatedButton.styleFrom(
-              backgroundColor: provider.isRunning ? Colors.grey : Colors.green,
+              backgroundColor: provider.isRunning
+                  ? Theme.of(context).disabledColor
+                  : Theme.of(context).colorScheme.primary,
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -285,12 +282,15 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
             const SizedBox(height: 16),
             Text(
               "Error loading history",
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 8),
             Text(
               provider.errorMessage!,
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 12,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -320,7 +320,7 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
       itemBuilder: (context, index) {
         final backtest = provider.backtestHistory[index];
         return Card(
-          color: const Color(0xFF24292F),
+          color: Theme.of(context).colorScheme.surfaceContainer,
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             title: Text(
@@ -350,7 +350,7 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
               ],
             ),
             trailing: PopupMenuButton(
-              color: const Color(0xFF24292F),
+              color: Theme.of(context).colorScheme.surfaceContainer,
               itemBuilder: (context) => [
                 PopupMenuItem(
                   child: const Text(
@@ -374,18 +374,23 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF24292F),
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
+          Text(
+            label,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
           ),

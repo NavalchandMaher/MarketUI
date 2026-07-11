@@ -28,7 +28,6 @@ class _SchedulerDashboardScreenState extends State<SchedulerDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a1a),
       appBar: AppBar(
         title: const Text('Scheduler'),
         centerTitle: true,
@@ -37,8 +36,6 @@ class _SchedulerDashboardScreenState extends State<SchedulerDashboardScreen> {
       body: Consumer<SchedulerProvider>(
         builder: (context, provider, _) => RefreshIndicator(
           onRefresh: () => provider.refreshAll(),
-          backgroundColor: const Color(0xFF24292F),
-          color: Colors.green,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
@@ -89,7 +86,7 @@ class _SchedulerDashboardScreenState extends State<SchedulerDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF24292F),
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: provider.isSchedulerRunning
@@ -184,14 +181,20 @@ class _SchedulerDashboardScreenState extends State<SchedulerDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF24292F),
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             value,
@@ -283,9 +286,9 @@ class _SchedulerDashboardScreenState extends State<SchedulerDashboardScreen> {
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF24292F),
+              color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Theme.of(context).colorScheme.outline),
             ),
             child: Row(
               children: [

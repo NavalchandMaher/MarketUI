@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/api/auth_service.dart';
 import '../service_locator.dart';
+import '../state/app_state.dart';
 
 /// ===============================================================
 /// Login Screen
@@ -39,6 +41,11 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+
+      if (!mounted) return;
+
+      // Load dashboard data immediately after successful login
+      await context.read<AppState>().refreshHomeData();
 
       if (!mounted) return;
 
@@ -96,28 +103,30 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: Theme.of(context).colorScheme.error.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.error.withOpacity(0.3),
+                    ),
                   ),
                   child: Text(
                     _errorMessage!,
-                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               const SizedBox(height: 20),
               TextField(
                 controller: _emailController,
-                style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'Enter your email',
                   labelText: 'Email',
                   prefixIcon: const Icon(Icons.email_outlined),
-                  fillColor: const Color(0xFF24292F),
-                  filled: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 enabled: !_isLoading,
@@ -125,13 +134,11 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
-                style: const TextStyle(color: Colors.white),
+                obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   hintText: 'Enter your password',
                   labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outlined),
-                  fillColor: const Color(0xFF24292F),
-                  filled: true,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -144,11 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       });
                     },
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                 ),
-                obscureText: _obscurePassword,
                 enabled: !_isLoading,
               ),
               const SizedBox(height: 24),

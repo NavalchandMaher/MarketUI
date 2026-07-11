@@ -74,7 +74,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(provider.errorMessage ?? 'Failed to update account'),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -97,7 +97,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error, size: 48, color: Colors.red),
+                  const Icon(Icons.error, size: 48),
                   const SizedBox(height: 16),
                   const Text('Failed to load account'),
                   const SizedBox(height: 16),
@@ -187,45 +187,29 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           const SizedBox(height: 12),
                           TextField(
                             controller: _nameController,
-                            style: const TextStyle(color: Colors.white),
                             decoration: const InputDecoration(
                               labelText: 'Full Name',
-                              border: OutlineInputBorder(),
-                              fillColor: Color(0xFF24292F),
-                              filled: true,
                             ),
                           ),
                           const SizedBox(height: 12),
                           TextField(
                             controller: _phoneController,
-                            style: const TextStyle(color: Colors.white),
                             decoration: const InputDecoration(
                               labelText: 'Phone',
-                              border: OutlineInputBorder(),
-                              fillColor: Color(0xFF24292F),
-                              filled: true,
                             ),
                           ),
                           const SizedBox(height: 12),
                           TextField(
                             controller: _countryController,
-                            style: const TextStyle(color: Colors.white),
                             decoration: const InputDecoration(
                               labelText: 'Country',
-                              border: OutlineInputBorder(),
-                              fillColor: Color(0xFF24292F),
-                              filled: true,
                             ),
                           ),
                           const SizedBox(height: 12),
                           TextField(
                             controller: _brokerController,
-                            style: const TextStyle(color: Colors.white),
                             decoration: const InputDecoration(
                               labelText: 'Broker Name',
-                              border: OutlineInputBorder(),
-                              fillColor: Color(0xFF24292F),
-                              filled: true,
                             ),
                           ),
                           const SizedBox(height: 20),

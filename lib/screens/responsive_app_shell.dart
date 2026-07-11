@@ -147,7 +147,7 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Theme.of(context).shadowColor.withOpacity(0.1),
               blurRadius: 8,
               offset: const Offset(0, -2),
             ),
@@ -219,7 +219,7 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
             decoration: BoxDecoration(
               border: Border(
                 right: BorderSide(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor,
                   width: 1,
                 ),
               ),
@@ -234,7 +234,7 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
                     styleBuilder: ResponsiveTextStyle.getHeading,
                   ),
                 ),
-                Divider(color: Colors.grey.withOpacity(0.1)),
+                Divider(color: Theme.of(context).dividerColor),
                 // Navigation Items
                 Expanded(
                   child: ListView.builder(
@@ -280,7 +280,9 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
                                     isSelected ? item.selectedIcon : item.icon,
                                     color: isSelected
                                         ? Theme.of(context).colorScheme.primary
-                                        : Colors.grey,
+                                        : Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                   ),
                                   const SizedBox(width: 16),
                                   Expanded(
@@ -292,7 +294,9 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
                                             ? Theme.of(
                                                 context,
                                               ).colorScheme.primary
-                                            : Colors.grey,
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
                                         fontWeight: isSelected
                                             ? FontWeight.w600
                                             : FontWeight.w400,
@@ -324,7 +328,7 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Theme.of(context).dividerColor,
                         width: 1,
                       ),
                     ),
@@ -412,7 +416,9 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey[400],
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withOpacity(0.4),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -453,7 +459,7 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               child: Divider(
                                 height: 1,
-                                color: Colors.grey.withOpacity(0.3),
+                                color: Theme.of(context).dividerColor,
                               ),
                             ),
                             // Settings Option

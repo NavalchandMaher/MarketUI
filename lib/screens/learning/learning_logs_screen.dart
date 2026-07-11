@@ -127,25 +127,13 @@ class _LearningLogsScreenState extends State<LearningLogsScreen> {
             children: [
               TextField(
                 controller: _titleCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
-                  fillColor: Color(0xFF24292F),
-                  filled: true,
-                ),
+                decoration: const InputDecoration(labelText: 'Title'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _descriptionCtrl,
                 maxLines: 5,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
-                  fillColor: Color(0xFF24292F),
-                  filled: true,
-                ),
+                decoration: const InputDecoration(labelText: 'Description'),
               ),
               const SizedBox(height: 12),
               DropdownButton<String>(
@@ -200,25 +188,13 @@ class _LearningLogsScreenState extends State<LearningLogsScreen> {
             children: [
               TextField(
                 controller: _titleCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
-                  fillColor: Color(0xFF24292F),
-                  filled: true,
-                ),
+                decoration: const InputDecoration(labelText: 'Title'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _descriptionCtrl,
                 maxLines: 5,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
-                  fillColor: Color(0xFF24292F),
-                  filled: true,
-                ),
+                decoration: const InputDecoration(labelText: 'Description'),
               ),
               const SizedBox(height: 12),
               DropdownButton<String>(

@@ -70,20 +70,19 @@ class _SmoothLoadingOverlayState extends State<SmoothLoadingOverlay>
           child: IgnorePointer(
             ignoring: !widget.isLoading,
             child: Container(
-              color: Colors.black54,
+              color: Colors.black.withOpacity(0.3),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const CircularProgressIndicator(),
+                    CircularProgressIndicator(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     if (widget.message != null) ...[
                       const SizedBox(height: 16),
                       Text(
                         widget.message!,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
+                        style: Theme.of(context).textTheme.bodyLarge,
                         textAlign: TextAlign.center,
                       ),
                     ],

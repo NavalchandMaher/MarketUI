@@ -120,7 +120,10 @@ class _AppShellState extends State<AppShell> {
                   ),
                   Text(
                     authState.userEmail,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),

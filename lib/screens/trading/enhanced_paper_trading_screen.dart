@@ -371,13 +371,7 @@ class _StartTradingDialogState extends State<_StartTradingDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              labelText: 'Strategy Name',
-              border: OutlineInputBorder(),
-              fillColor: Color(0xFF24292F),
-              filled: true,
-            ),
+            decoration: const InputDecoration(labelText: 'Strategy Name'),
             onChanged: (value) => setState(() => _selectedStrategy = value),
           ),
           const SizedBox(height: 12),
