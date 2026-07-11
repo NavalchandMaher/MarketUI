@@ -212,6 +212,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
 
+          if (_autoRefresh)
+            ListTile(
+              leading: const Icon(Icons.timer),
+              title: const Text("Refresh Interval"),
+              subtitle: Text("$_refreshInterval seconds"),
+              trailing: DropdownButton<int>(
+                value: _refreshInterval,
+                items: _intervals
+                    .map(
+                      (e) => DropdownMenuItem(value: e, child: Text("$e sec")),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() {
+                    _refreshInterval = value;
+                  });
+                },
+              ),
+            ),
+
+          SwitchListTile(
+            secondary: const Icon(Icons.notifications_active),
+            title: const Text("Push Notifications"),
+            subtitle: const Text("Receive signal alerts while using the app"),
+            value: _soundAlerts,
+            onChanged: (value) {
+              setState(() => _soundAlerts = value);
+            },
+          ),
+
           ListTile(
             leading: const Icon(Icons.timer),
             title: const Text("Refresh Interval"),

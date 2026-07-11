@@ -83,10 +83,19 @@ class V3ApiService {
     int cacheTtl = 60, // Cache TTL in seconds (0 = no cache)
     bool forceRefresh = false,
   }) async {
+    if (!connectivityService.isOnline) {
+      final offlineCached = cacheService.get(endpoint, ttlSeconds: cacheTtl);
+      if (offlineCached != null) {
+        _log("✓ OFFLINE: returning cached data for $endpoint");
+        return offlineCached;
+      }
+      throw Exception("Offline and no cached data available for $endpoint");
+    }
+
     try {
       // Check cache first (if enabled and not forcing refresh)
       if (cacheTtl > 0 && !forceRefresh) {
-        final cached = cacheService.get(endpoint);
+        final cached = cacheService.get(endpoint, ttlSeconds: cacheTtl);
         if (cached != null) {
           _log("✓ GET (CACHED): $endpoint");
           return cached;
@@ -122,8 +131,20 @@ class V3ApiService {
 
       return result;
     } on TimeoutException {
+      final cached = cacheService.get(endpoint, ttlSeconds: cacheTtl);
+      if (cached != null) {
+        _log("✓ TIMEOUT: returning cached data for $endpoint");
+        return cached;
+      }
       throw Exception("Request Timeout");
     } catch (e) {
+      if (!connectivityService.isOnline) {
+        final cached = cacheService.get(endpoint, ttlSeconds: cacheTtl);
+        if (cached != null) {
+          _log("✓ NETWORK ERROR: returning cached data for $endpoint");
+          return cached;
+        }
+      }
       throw Exception("GET Request Failed: $e");
     }
   }
@@ -132,6 +153,10 @@ class V3ApiService {
     String endpoint, {
     Map<String, dynamic>? body,
   }) async {
+    if (!connectivityService.isOnline) {
+      throw Exception("Offline: unable to perform POST to $endpoint");
+    }
+
     try {
       final uri = Uri.parse("${AppConfig.baseUrl}$endpoint");
       _log("[DEBUG] Starting POST request to: $uri");

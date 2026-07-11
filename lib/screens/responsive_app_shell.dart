@@ -108,11 +108,11 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
         final isTablet = ResponsiveBreakpoints.isTablet(context);
 
         if (isMobile) {
-          return _buildMobileLayout();
+          return _buildMobileLayout(appState);
         } else if (isTablet) {
-          return _buildTabletLayout();
+          return _buildTabletLayout(appState);
         } else {
-          return _buildDesktopLayout();
+          return _buildDesktopLayout(appState);
         }
       },
     );
@@ -122,7 +122,7 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
   // Mobile Layout - Bottom Navigation
   // ============================================================
 
-  Widget _buildMobileLayout() {
+  Widget _buildMobileLayout(AppState appState) {
     // Clamp currentIndex to valid BottomNavigationBar range (0-4)
     // Items 5-7 (Backtest, History, Settings) are accessed via menu only
     final bottomNavIndex = _currentIndex < 5 ? _currentIndex : 0;
@@ -142,7 +142,7 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
           ),
         ],
       ),
-      body: _pages[_currentIndex],
+      body: _buildPageWrapper(appState, _pages[_currentIndex]),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -174,7 +174,7 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
   // Tablet Layout - Side Navigation Rail
   // ============================================================
 
-  Widget _buildTabletLayout() {
+  Widget _buildTabletLayout(AppState appState) {
     return Scaffold(
       appBar: AppBar(
         title: ResponsiveText(
@@ -199,7 +199,7 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
             }).toList(),
           ),
           // Content
-          Expanded(child: _pages[_currentIndex]),
+          Expanded(child: _buildPageWrapper(appState, _pages[_currentIndex])),
         ],
       ),
     );
@@ -209,7 +209,7 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
   // Desktop Layout - Sidebar + Main Content
   // ============================================================
 
-  Widget _buildDesktopLayout() {
+  Widget _buildDesktopLayout(AppState appState) {
     return Scaffold(
       body: Row(
         children: [
@@ -377,12 +377,55 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
                   ),
                 ),
                 // Page Content
-                Expanded(child: _pages[_currentIndex]),
+                Expanded(
+                  child: _buildPageWrapper(appState, _pages[_currentIndex]),
+                ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPageWrapper(AppState appState, Widget page) {
+    final banners = <Widget>[];
+
+    if (!appState.isOnline) {
+      banners.add(
+        Container(
+          width: double.infinity,
+          color: Colors.red.shade700,
+          padding: const EdgeInsets.all(12),
+          child: const Text(
+            'Offline mode: showing cached data.',
+            style: TextStyle(color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    if (appState.notificationMessage != null) {
+      banners.add(
+        MaterialBanner(
+          content: Text(appState.notificationMessage!),
+          leading: const Icon(Icons.notifications_active),
+          actions: [
+            TextButton(
+              onPressed: appState.clearNotification,
+              child: const Text('Dismiss'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        ...banners,
+        Expanded(child: page),
+      ],
     );
   }
 
