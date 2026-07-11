@@ -396,17 +396,136 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   }
 
   Widget _buildReasonCard(AnalysisModel analysis) {
+    final theme = Theme.of(context);
+    final signalColor = analysis.isBuy
+        ? AppColors.buy
+        : analysis.isSell
+        ? AppColors.sell
+        : AppColors.wait;
+
     return DashboardCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SectionHeader(
             title: 'AI Insight',
             subtitle: 'Why this signal was generated',
             icon: Icons.psychology,
           ),
-          const SizedBox(height: 12),
-          Text(analysis.reason, style: AppTextStyles.body),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 4,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: signalColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'AI generated market insight',
+                      style: AppTextStyles.title.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Key details and reasoning behind the current recommendation.',
+                      style: AppTextStyles.small.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _buildDetailChip(
+                label: 'Signal',
+                value: analysis.signal,
+                color: signalColor,
+              ),
+              _buildDetailChip(
+                label: 'Confidence',
+                value: '${analysis.confidence}%',
+                color: theme.colorScheme.primary,
+              ),
+              _buildDetailChip(
+                label: 'Regime',
+                value: analysis.marketRegime,
+                color: AppColors.info,
+              ),
+              _buildDetailChip(
+                label: 'Higher TF',
+                value: analysis.higherTimeframe,
+                color: theme.colorScheme.primary.withAlpha(180),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Reason',
+            style: AppTextStyles.subtitle.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            analysis.reason,
+            style: AppTextStyles.body.copyWith(
+              color: theme.colorScheme.onSurface,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailChip({
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withAlpha(30),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: color.withAlpha(90)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$label: ',
+            style: AppTextStyles.small.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Text(
+            value,
+            style: AppTextStyles.body.copyWith(
+              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
