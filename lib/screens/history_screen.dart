@@ -112,6 +112,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Colors.orange;
   }
 
+  Color _resultCardColor(BacktestResult result) {
+    if (result.netProfit > 0 && result.wins > result.losses) {
+      return Colors.green;
+    }
+
+    if (result.netProfit < 0 || result.losses > result.wins) {
+      return Colors.red;
+    }
+
+    return Colors.orange;
+  }
+
   IconData _profitIcon(double profit) {
     if (profit > 0) return Icons.trending_up;
     if (profit < 0) return Icons.trending_down;
@@ -236,20 +248,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
       return _buildEmpty();
     }
 
+    final sortedResults = _history!.sortedHistory;
+
     return RefreshIndicator(
       onRefresh: _refreshHistory,
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
-        itemCount: _history!.history.length,
+        itemCount: sortedResults.length,
         itemBuilder: (context, index) {
-          final result = _history!.history[index];
+          final result = sortedResults[index];
+          final cardColor = _resultCardColor(result);
 
           return Card(
             margin: const EdgeInsets.only(bottom: 16),
             elevation: 2,
+            color: cardColor.withOpacity(0.06),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: cardColor.withOpacity(0.85), width: 1.5),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -269,7 +286,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                       ),
 
-                      Chip(label: Text(result.symbol)),
+                      Chip(
+                        label: Text(result.symbol),
+                        backgroundColor: cardColor.withOpacity(0.15),
+                      ),
                     ],
                   ),
 
@@ -277,17 +297,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                   Row(
                     children: [
-                      Icon(
-                        _profitIcon(result.netProfit),
-                        color: _profitColor(result.netProfit),
-                      ),
+                      Icon(_profitIcon(result.netProfit), color: cardColor),
 
                       const SizedBox(width: 8),
 
                       Text(
                         "₹${result.netProfit.toStringAsFixed(2)}",
                         style: TextStyle(
-                          color: _profitColor(result.netProfit),
+                          color: cardColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),

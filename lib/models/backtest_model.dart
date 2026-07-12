@@ -20,26 +20,18 @@ class BacktestModel {
     required this.dashboard,
   });
 
-  factory BacktestModel.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory BacktestModel.fromJson(Map<String, dynamic> json) {
     return BacktestModel(
       success: json["success"] ?? false,
 
       message: json["message"] ?? "",
 
-      dashboard: BacktestDashboard.fromJson(
-        json["dashboard"] ?? {},
-      ),
+      dashboard: BacktestDashboard.fromJson(json["dashboard"] ?? {}),
     );
   }
 
-  factory BacktestModel.fromRawJson(
-    String source,
-  ) =>
-      BacktestModel.fromJson(
-        jsonDecode(source),
-      );
+  factory BacktestModel.fromRawJson(String source) =>
+      BacktestModel.fromJson(jsonDecode(source));
 
   Map<String, dynamic> toJson() {
     return {
@@ -49,8 +41,7 @@ class BacktestModel {
     };
   }
 
-  String toRawJson() =>
-      jsonEncode(toJson());
+  String toRawJson() => jsonEncode(toJson());
 
   BacktestModel copyWith({
     bool? success,
@@ -60,8 +51,7 @@ class BacktestModel {
     return BacktestModel(
       success: success ?? this.success,
       message: message ?? this.message,
-      dashboard:
-          dashboard ?? this.dashboard,
+      dashboard: dashboard ?? this.dashboard,
     );
   }
 
@@ -105,34 +95,21 @@ class BacktestDashboard {
     required this.allResults,
   });
 
-  factory BacktestDashboard.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory BacktestDashboard.fromJson(Map<String, dynamic> json) {
     return BacktestDashboard(
       symbol: json["symbol"] ?? "",
 
       timeframe: json["timeframe"] ?? "",
 
-      backtestDays:
-          json["backtest_days"] ?? 0,
+      backtestDays: json["backtest_days"] ?? 0,
 
-      totalStrategies:
-          json["total_strategies"] ?? 0,
+      totalStrategies: json["total_strategies"] ?? 0,
 
-      bestStrategy:
-          BacktestResult.fromJson(
-        json["best_strategy"] ?? {},
-      ),
+      bestStrategy: BacktestResult.fromJson(json["best_strategy"] ?? {}),
 
-      allResults:
-          (json["all_results"] as List? ?? [])
-              .map(
-                (e) =>
-                    BacktestResult.fromJson(
-                  e,
-                ),
-              )
-              .toList(),
+      allResults: (json["all_results"] as List? ?? [])
+          .map((e) => BacktestResult.fromJson(e))
+          .toList(),
     );
   }
 
@@ -141,14 +118,9 @@ class BacktestDashboard {
       "symbol": symbol,
       "timeframe": timeframe,
       "backtest_days": backtestDays,
-      "total_strategies":
-          totalStrategies,
-      "best_strategy":
-          bestStrategy.toJson(),
-      "all_results":
-          allResults
-              .map((e) => e.toJson())
-              .toList(),
+      "total_strategies": totalStrategies,
+      "best_strategy": bestStrategy.toJson(),
+      "all_results": allResults.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -162,25 +134,15 @@ class BacktestDashboard {
   }) {
     return BacktestDashboard(
       symbol: symbol ?? this.symbol,
-      timeframe:
-          timeframe ?? this.timeframe,
-      backtestDays:
-          backtestDays ??
-              this.backtestDays,
-      totalStrategies:
-          totalStrategies ??
-              this.totalStrategies,
-      bestStrategy:
-          bestStrategy ??
-              this.bestStrategy,
-      allResults:
-          allResults ??
-              this.allResults,
+      timeframe: timeframe ?? this.timeframe,
+      backtestDays: backtestDays ?? this.backtestDays,
+      totalStrategies: totalStrategies ?? this.totalStrategies,
+      bestStrategy: bestStrategy ?? this.bestStrategy,
+      allResults: allResults ?? this.allResults,
     );
   }
 
-  bool get hasResults =>
-      allResults.isNotEmpty;
+  bool get hasResults => allResults.isNotEmpty;
 
   @override
   String toString() {
@@ -194,6 +156,7 @@ strategies : $totalStrategies
 ''';
   }
 }
+
 /// ===============================================================
 /// Backtest Result
 /// Used by:
@@ -260,9 +223,7 @@ class BacktestResult {
     required this.id,
   });
 
-  factory BacktestResult.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory BacktestResult.fromJson(Map<String, dynamic> json) {
     return BacktestResult(
       totalTrades: json["total_trades"] ?? 0,
 
@@ -270,56 +231,34 @@ class BacktestResult {
 
       losses: json["losses"] ?? 0,
 
-      winRate:
-          (json["win_rate"] ?? 0).toDouble(),
+      winRate: (json["win_rate"] ?? 0).toDouble(),
 
-      grossProfit:
-          (json["gross_profit"] ?? 0)
-              .toDouble(),
+      grossProfit: (json["gross_profit"] ?? 0).toDouble(),
 
-      grossLoss:
-          (json["gross_loss"] ?? 0)
-              .toDouble(),
+      grossLoss: (json["gross_loss"] ?? 0).toDouble(),
 
-      netProfit:
-          (json["net_profit"] ?? 0)
-              .toDouble(),
+      netProfit: (json["net_profit"] ?? 0).toDouble(),
 
-      profitFactor:
-          (json["profit_factor"] ?? 0)
-              .toDouble(),
+      profitFactor: (json["profit_factor"] ?? 0).toDouble(),
 
-      drawdown:
-          (json["drawdown"] ?? 0)
-              .toDouble(),
+      drawdown: (json["drawdown"] ?? 0).toDouble(),
 
-      sharpeRatio:
-          (json["sharpe_ratio"] ?? 0)
-              .toDouble(),
+      sharpeRatio: (json["sharpe_ratio"] ?? 0).toDouble(),
 
-      expectancy:
-          (json["expectancy"] ?? 0)
-              .toDouble(),
+      expectancy: (json["expectancy"] ?? 0).toDouble(),
 
-      strategyName:
-          json["strategy_name"] ?? "",
+      strategyName: json["strategy_name"] ?? "",
 
-      strategyVersion:
-          json["strategy_version"] ?? 1,
+      strategyVersion: json["strategy_version"] ?? 1,
 
-      symbol:
-          json["symbol"] ?? "",
+      symbol: json["symbol"] ?? "",
 
-      timeframe:
-          json["timeframe"] ?? "",
+      timeframe: json["timeframe"] ?? "",
 
-      days:
-          json["days"] ?? 0,
+      days: json["days"] ?? 0,
 
       createdAt: json["created_at"] != null
-          ? DateTime.tryParse(
-              json["created_at"],
-            )
+          ? DateTime.tryParse(json["created_at"])
           : null,
 
       id: json["_id"] ?? "",
@@ -344,8 +283,7 @@ class BacktestResult {
       "symbol": symbol,
       "timeframe": timeframe,
       "days": days,
-      "created_at":
-          createdAt?.toIso8601String(),
+      "created_at": createdAt?.toIso8601String(),
       "_id": id,
     };
   }
@@ -371,35 +309,23 @@ class BacktestResult {
     String? id,
   }) {
     return BacktestResult(
-      totalTrades:
-          totalTrades ?? this.totalTrades,
+      totalTrades: totalTrades ?? this.totalTrades,
       wins: wins ?? this.wins,
       losses: losses ?? this.losses,
       winRate: winRate ?? this.winRate,
-      grossProfit:
-          grossProfit ?? this.grossProfit,
-      grossLoss:
-          grossLoss ?? this.grossLoss,
-      netProfit:
-          netProfit ?? this.netProfit,
-      profitFactor:
-          profitFactor ?? this.profitFactor,
-      drawdown:
-          drawdown ?? this.drawdown,
-      sharpeRatio:
-          sharpeRatio ?? this.sharpeRatio,
-      expectancy:
-          expectancy ?? this.expectancy,
-      strategyName:
-          strategyName ?? this.strategyName,
-      strategyVersion: strategyVersion ??
-          this.strategyVersion,
+      grossProfit: grossProfit ?? this.grossProfit,
+      grossLoss: grossLoss ?? this.grossLoss,
+      netProfit: netProfit ?? this.netProfit,
+      profitFactor: profitFactor ?? this.profitFactor,
+      drawdown: drawdown ?? this.drawdown,
+      sharpeRatio: sharpeRatio ?? this.sharpeRatio,
+      expectancy: expectancy ?? this.expectancy,
+      strategyName: strategyName ?? this.strategyName,
+      strategyVersion: strategyVersion ?? this.strategyVersion,
       symbol: symbol ?? this.symbol,
-      timeframe:
-          timeframe ?? this.timeframe,
+      timeframe: timeframe ?? this.timeframe,
       days: days ?? this.days,
-      createdAt:
-          createdAt ?? this.createdAt,
+      createdAt: createdAt ?? this.createdAt,
       id: id ?? this.id,
     );
   }
@@ -422,8 +348,7 @@ class BacktestResult {
     return netProfit / totalTrades;
   }
 
-  String get displayName =>
-      "$strategyName v$strategyVersion";
+  String get displayName => "$strategyName v$strategyVersion";
 
   @override
   String toString() {
@@ -445,17 +370,11 @@ Sharpe Ratio : $sharpeRatio
       other is BacktestResult &&
           runtimeType == other.runtimeType &&
           strategyName == other.strategyName &&
-          strategyVersion ==
-              other.strategyVersion &&
+          strategyVersion == other.strategyVersion &&
           createdAt == other.createdAt;
 
   @override
-  int get hashCode =>
-      Object.hash(
-        strategyName,
-        strategyVersion,
-        createdAt,
-      );
+  int get hashCode => Object.hash(strategyName, strategyVersion, createdAt);
 }
 
 /// ===============================================================
@@ -466,54 +385,31 @@ Sharpe Ratio : $sharpeRatio
 class BacktestHistoryModel {
   final List<BacktestResult> history;
 
-  const BacktestHistoryModel({
-    required this.history,
-  });
+  const BacktestHistoryModel({required this.history});
 
   factory BacktestHistoryModel.empty() {
-    return const BacktestHistoryModel(
-      history: [],
-    );
+    return const BacktestHistoryModel(history: []);
   }
 
-  factory BacktestHistoryModel.fromJson(
-    List<dynamic> json,
-  ) {
+  factory BacktestHistoryModel.fromJson(List<dynamic> json) {
     return BacktestHistoryModel(
       history: json
-          .map(
-            (e) => BacktestResult.fromJson(
-              e as Map<String, dynamic>,
-            ),
-          )
+          .map((e) => BacktestResult.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
   }
 
-  factory BacktestHistoryModel.fromRawJson(
-    String source,
-  ) =>
-      BacktestHistoryModel.fromJson(
-        jsonDecode(source),
-      );
+  factory BacktestHistoryModel.fromRawJson(String source) =>
+      BacktestHistoryModel.fromJson(jsonDecode(source));
 
   List<Map<String, dynamic>> toJson() {
-    return history
-        .map(
-          (e) => e.toJson(),
-        )
-        .toList();
+    return history.map((e) => e.toJson()).toList();
   }
 
-  String toRawJson() =>
-      jsonEncode(toJson());
+  String toRawJson() => jsonEncode(toJson());
 
-  BacktestHistoryModel copyWith({
-    List<BacktestResult>? history,
-  }) {
-    return BacktestHistoryModel(
-      history: history ?? this.history,
-    );
+  BacktestHistoryModel copyWith({List<BacktestResult>? history}) {
+    return BacktestHistoryModel(history: history ?? this.history);
   }
 
   /// ===========================================================
@@ -526,15 +422,38 @@ class BacktestHistoryModel {
 
   int get totalBacktests => history.length;
 
+  List<BacktestResult> get sortedHistory {
+    final sorted = [...history];
+
+    sorted.sort((a, b) {
+      final profitFactorCompare = b.profitFactor.compareTo(a.profitFactor);
+      if (profitFactorCompare != 0) {
+        return profitFactorCompare;
+      }
+
+      final netProfitCompare = b.netProfit.compareTo(a.netProfit);
+      if (netProfitCompare != 0) {
+        return netProfitCompare;
+      }
+
+      final winsCompare = b.wins.compareTo(a.wins);
+      if (winsCompare != 0) {
+        return winsCompare;
+      }
+
+      return b.losses.compareTo(a.losses);
+    });
+
+    return sorted;
+  }
+
   BacktestResult? get latestResult {
     if (history.isEmpty) return null;
 
     final sorted = [...history];
 
     sorted.sort(
-      (a, b) =>
-          (b.createdAt ?? DateTime(1970))
-              .compareTo(
+      (a, b) => (b.createdAt ?? DateTime(1970)).compareTo(
         a.createdAt ?? DateTime(1970),
       ),
     );
@@ -547,50 +466,33 @@ class BacktestHistoryModel {
 
     final sorted = [...history];
 
-    sorted.sort(
-      (a, b) =>
-          b.netProfit.compareTo(a.netProfit),
-    );
+    sorted.sort((a, b) => b.netProfit.compareTo(a.netProfit));
 
     return sorted.first;
   }
 
   double get totalNetProfit {
-    return history.fold(
-      0.0,
-      (sum, item) => sum + item.netProfit,
-    );
+    return history.fold(0.0, (sum, item) => sum + item.netProfit);
   }
 
   double get averageWinRate {
     if (history.isEmpty) return 0;
 
-    return history.fold(
-          0.0,
-          (sum, item) => sum + item.winRate,
-        ) /
+    return history.fold(0.0, (sum, item) => sum + item.winRate) /
         history.length;
   }
 
   double get averageProfitFactor {
     if (history.isEmpty) return 0;
 
-    return history.fold(
-          0.0,
-          (sum, item) =>
-              sum + item.profitFactor,
-        ) /
+    return history.fold(0.0, (sum, item) => sum + item.profitFactor) /
         history.length;
   }
 
   double get averageSharpe {
     if (history.isEmpty) return 0;
 
-    return history.fold(
-          0.0,
-          (sum, item) =>
-              sum + item.sharpeRatio,
-        ) /
+    return history.fold(0.0, (sum, item) => sum + item.sharpeRatio) /
         history.length;
   }
 
