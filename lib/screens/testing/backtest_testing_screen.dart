@@ -341,50 +341,165 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
       itemCount: provider.backtestHistory.length,
       itemBuilder: (context, index) {
         final backtest = provider.backtestHistory[index];
+        final data = backtest is Map && backtest['result'] is Map
+            ? Map<String, dynamic>.from(backtest['result'])
+            : Map<String, dynamic>.from(backtest as Map);
+
+        String createdAt = '';
+        if (backtest['created_at'] != null) {
+          try {
+            createdAt = backtest['created_at'].toString();
+          } catch (_) {
+            createdAt = backtest['created_at']?.toString() ?? '';
+          }
+        }
+
         return Card(
           color: Theme.of(context).colorScheme.surfaceContainer,
           margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
             title: Text(
-              "${backtest['symbol'] ?? 'UNKNOWN'} - ${backtest['timeframe'] ?? '5m'}",
+              "${data['symbol'] ?? backtest['symbol'] ?? 'UNKNOWN'} - ${data['timeframe'] ?? backtest['timeframe'] ?? '5m'}",
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                Text(
-                  "Trades: ${backtest['total_trades'] ?? 0} | Win Rate: ${backtest['win_rate'] ?? 0}%",
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-                Text(
-                  "P&L: ${backtest['total_pnl'] ?? 0}",
-                  style: TextStyle(
-                    color: (backtest['total_pnl'] ?? 0) >= 0
-                        ? Colors.green
-                        : Colors.red,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+            subtitle: Text(
+              "${data['strategy_name'] ?? backtest['strategy_name'] ?? ''}",
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
-            trailing: PopupMenuButton(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  child: const Text(
-                    "Delete",
-                    style: TextStyle(color: Colors.red),
-                  ),
-                  onTap: () {
-                    provider.deleteBacktest(backtest['id'] ?? backtest['_id']);
-                  },
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
-              ],
-            ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildResultCard(
+                            'Total Trades',
+                            (data['total_trades'] ?? data['trades'] ?? 0)
+                                .toString(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildResultCard(
+                            'Win Rate',
+                            "${data['win_rate'] ?? 0}%",
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildResultCard(
+                            'Net Profit',
+                            (data['net_profit'] ?? data['total_pnl'] ?? 0)
+                                .toString(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildResultCard(
+                            'Profit Factor',
+                            (data['profit_factor'] ?? 0).toString(),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildResultCard(
+                            'Gross Profit',
+                            (data['gross_profit'] ?? 0).toString(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildResultCard(
+                            'Gross Loss',
+                            (data['gross_loss'] ?? 0).toString(),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildResultCard(
+                            'Drawdown',
+                            (data['drawdown'] ?? 0).toString(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildResultCard(
+                            'Sharpe',
+                            (data['sharpe_ratio'] ?? 0).toString(),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    _buildResultCard(
+                      'Expectancy',
+                      (data['expectancy'] ?? 0).toString(),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Details',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Symbol: ${data['symbol'] ?? backtest['symbol'] ?? ''}',
+                    ),
+                    Text(
+                      'Timeframe: ${data['timeframe'] ?? backtest['timeframe'] ?? ''}',
+                    ),
+                    Text('Days: ${data['days'] ?? backtest['days'] ?? ''}'),
+                    Text('Created: $createdAt'),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: PopupMenuButton(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            child: const Text(
+                              "Delete",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                            onTap: () {
+                              provider.deleteBacktest(
+                                backtest['id'] ?? backtest['_id'],
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
