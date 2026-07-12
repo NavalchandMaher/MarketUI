@@ -95,10 +95,35 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Icons.remove;
   }
 
+  String _statusLabel(BacktestResult result) {
+    if (result.netProfit > 0) return 'Profitable';
+    if (result.netProfit < 0) return 'Loss-making';
+    return 'Balanced';
+  }
+
   String _formatCurrency(double value) => '₹${value.toStringAsFixed(2)}';
 
   String _formatDate(DateTime dateTime) =>
       dateTime.toLocal().toString().substring(0, 19);
+
+  Widget _summaryChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(0.35)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
@@ -215,92 +240,163 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   }
                 });
               },
-              child: Card(
-                elevation: 2,
-                color: cardColor.withOpacity(0.06),
-                shape: RoundedRectangleBorder(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: cardColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(
-                    color: cardColor.withOpacity(0.85),
+                  border: Border.all(
+                    color: cardColor.withOpacity(0.75),
                     width: 1.5,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: cardColor.withOpacity(0.18),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Row(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              result.strategyName,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Chip(
-                            label: Text(result.symbol),
-                            backgroundColor: cardColor.withOpacity(0.15),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
+                      Container(width: 5, color: cardColor),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                _profitIcon(result.netProfit),
-                                color: cardColor,
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          result.strategyName,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${result.timeframe} • ${result.symbol}',
+                                          style: TextStyle(
+                                            color: Colors.grey.shade700,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Chip(
+                                    label: Text(_statusLabel(result)),
+                                    backgroundColor: cardColor.withOpacity(
+                                      0.12,
+                                    ),
+                                    side: BorderSide(
+                                      color: cardColor.withOpacity(0.35),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _formatCurrency(result.netProfit),
-                                style: TextStyle(
-                                  color: cardColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: [
+                                        _summaryChip(
+                                          'PF ${result.profitFactor.toStringAsFixed(2)}',
+                                          cardColor,
+                                        ),
+                                        _summaryChip(
+                                          'Win ${result.wins}/${result.totalTrades}',
+                                          cardColor,
+                                        ),
+                                        _summaryChip(
+                                          'Loss ${result.losses}',
+                                          cardColor,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        'Net Profit',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade700,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            _profitIcon(result.netProfit),
+                                            color: cardColor,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _formatCurrency(result.netProfit),
+                                            style: TextStyle(
+                                              color: cardColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              if (expanded) ...<Widget>[
+                                const SizedBox(height: 12),
+                                const Divider(height: 24),
+                                _infoRow('Timeframe', result.timeframe),
+                                _infoRow('Days', result.days.toString()),
+                                _infoRow(
+                                  'Trades',
+                                  result.totalTrades.toString(),
                                 ),
-                              ),
+                                _infoRow('Wins', result.wins.toString()),
+                                _infoRow('Losses', result.losses.toString()),
+                                _infoRow(
+                                  'Win Rate',
+                                  '${result.winRate.toStringAsFixed(2)} %',
+                                ),
+                                _infoRow(
+                                  'Profit Factor',
+                                  result.profitFactor.toStringAsFixed(2),
+                                ),
+                                _infoRow(
+                                  'Drawdown',
+                                  result.drawdown.toStringAsFixed(2),
+                                ),
+                                _infoRow(
+                                  'Sharpe Ratio',
+                                  result.sharpeRatio.toStringAsFixed(2),
+                                ),
+                                if (result.createdAt != null)
+                                  _infoRow(
+                                    'Created',
+                                    _formatDate(result.createdAt!),
+                                  ),
+                              ],
                             ],
                           ),
-                          Text(
-                            result.timeframe,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ],
+                        ),
                       ),
-                      if (expanded) ...<Widget>[
-                        const SizedBox(height: 12),
-                        const Divider(height: 24),
-                        _infoRow('Timeframe', result.timeframe),
-                        _infoRow('Days', result.days.toString()),
-                        _infoRow('Trades', result.totalTrades.toString()),
-                        _infoRow('Wins', result.wins.toString()),
-                        _infoRow('Losses', result.losses.toString()),
-                        _infoRow(
-                          'Win Rate',
-                          '${result.winRate.toStringAsFixed(2)} %',
-                        ),
-                        _infoRow(
-                          'Profit Factor',
-                          result.profitFactor.toStringAsFixed(2),
-                        ),
-                        _infoRow(
-                          'Drawdown',
-                          result.drawdown.toStringAsFixed(2),
-                        ),
-                        _infoRow(
-                          'Sharpe Ratio',
-                          result.sharpeRatio.toStringAsFixed(2),
-                        ),
-                        if (result.createdAt != null)
-                          _infoRow('Created', _formatDate(result.createdAt!)),
-                      ],
                     ],
                   ),
                 ),

@@ -436,12 +436,24 @@ class BacktestHistoryModel {
         return netProfitCompare;
       }
 
+      final winRateCompare = b.winRate.compareTo(a.winRate);
+      if (winRateCompare != 0) {
+        return winRateCompare;
+      }
+
       final winsCompare = b.wins.compareTo(a.wins);
       if (winsCompare != 0) {
         return winsCompare;
       }
 
-      return b.losses.compareTo(a.losses);
+      final lossesCompare = a.losses.compareTo(b.losses);
+      if (lossesCompare != 0) {
+        return lossesCompare;
+      }
+
+      return (b.createdAt ?? DateTime(1970)).compareTo(
+        a.createdAt ?? DateTime(1970),
+      );
     });
 
     return sorted;
