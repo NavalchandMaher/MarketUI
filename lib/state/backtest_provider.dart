@@ -184,6 +184,43 @@ class BacktestProvider extends ChangeNotifier {
     }
   }
 
+  // Retry a failed backtest by re-issuing the async backtest request
+  Future<bool> retryBacktest(Map<String, dynamic> backtest) async {
+    try {
+      final symbol = backtest['symbol'] ?? 'BTCUSDT';
+      final timeframe = backtest['timeframe'] ?? '5m';
+      int days = backtest['days'] ?? 30;
+
+      DateTime endDate = DateTime.now();
+      DateTime startDate = endDate.subtract(Duration(days: days));
+      if (backtest['start_date'] != null && backtest['end_date'] != null) {
+        try {
+          startDate = DateTime.parse(backtest['start_date']);
+          endDate = DateTime.parse(backtest['end_date']);
+        } catch (_) {}
+      }
+
+      final strategyName = backtest['strategy_name'] ?? 'Retry Strategy';
+
+      final ok = await runBacktest(
+        strategyName: strategyName,
+        symbol: symbol,
+        timeframe: timeframe,
+        startDate: startDate,
+        endDate: endDate,
+        initialCapital: (backtest['initial_capital'] ?? 100000.0).toDouble(),
+        commission: (backtest['commission'] ?? 0.0).toDouble(),
+        slippage: (backtest['slippage'] ?? 0.0).toDouble(),
+      );
+
+      return ok;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   // ============================================================
   // Utilities
   // ============================================================

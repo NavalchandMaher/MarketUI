@@ -387,15 +387,21 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
                         Expanded(
                           child: _buildResultCard(
                             'Total Trades',
-                            (data['total_trades'] ?? data['trades'] ?? 0)
-                                .toString(),
+                            _metricValue(
+                              backtest as Map<String, dynamic>,
+                              'total_trades',
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: _buildResultCard(
                             'Win Rate',
-                            "${data['win_rate'] ?? 0}%",
+                            _metricValue(
+                              backtest as Map<String, dynamic>,
+                              'win_rate',
+                              percent: true,
+                            ),
                           ),
                         ),
                       ],
@@ -406,15 +412,20 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
                         Expanded(
                           child: _buildResultCard(
                             'Net Profit',
-                            (data['net_profit'] ?? data['total_pnl'] ?? 0)
-                                .toString(),
+                            _metricValue(
+                              backtest as Map<String, dynamic>,
+                              'net_profit',
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: _buildResultCard(
                             'Profit Factor',
-                            (data['profit_factor'] ?? 0).toString(),
+                            _metricValue(
+                              backtest as Map<String, dynamic>,
+                              'profit_factor',
+                            ),
                           ),
                         ),
                       ],
@@ -425,14 +436,20 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
                         Expanded(
                           child: _buildResultCard(
                             'Gross Profit',
-                            (data['gross_profit'] ?? 0).toString(),
+                            _metricValue(
+                              backtest as Map<String, dynamic>,
+                              'gross_profit',
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: _buildResultCard(
                             'Gross Loss',
-                            (data['gross_loss'] ?? 0).toString(),
+                            _metricValue(
+                              backtest as Map<String, dynamic>,
+                              'gross_loss',
+                            ),
                           ),
                         ),
                       ],
@@ -443,14 +460,20 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
                         Expanded(
                           child: _buildResultCard(
                             'Drawdown',
-                            (data['drawdown'] ?? 0).toString(),
+                            _metricValue(
+                              backtest as Map<String, dynamic>,
+                              'drawdown',
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: _buildResultCard(
                             'Sharpe',
-                            (data['sharpe_ratio'] ?? 0).toString(),
+                            _metricValue(
+                              backtest as Map<String, dynamic>,
+                              'sharpe_ratio',
+                            ),
                           ),
                         ),
                       ],
@@ -458,7 +481,10 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
                     const SizedBox(height: 8),
                     _buildResultCard(
                       'Expectancy',
-                      (data['expectancy'] ?? 0).toString(),
+                      _metricValue(
+                        backtest as Map<String, dynamic>,
+                        'expectancy',
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -477,24 +503,75 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
                     Text('Days: ${data['days'] ?? backtest['days'] ?? ''}'),
                     Text('Created: $createdAt'),
                     const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: PopupMenuButton(
-                        color: Theme.of(context).colorScheme.surfaceContainer,
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            child: const Text(
-                              "Delete",
-                              style: TextStyle(color: Colors.red),
-                            ),
-                            onTap: () {
-                              provider.deleteBacktest(
-                                backtest['id'] ?? backtest['_id'],
-                              );
-                            },
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Status: ${backtest['status'] ?? 'unknown'}',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
-                        ],
-                      ),
+                        ),
+                        Row(
+                          children: [
+                            if ((backtest['status'] ?? '') == 'failed')
+                              ElevatedButton.icon(
+                                onPressed: provider.isRunning
+                                    ? null
+                                    : () async {
+                                        final ok = await provider.retryBacktest(
+                                          backtest as Map<String, dynamic>,
+                                        );
+                                        if (ok) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Retry started'),
+                                            ),
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Retry failed to start',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Retry'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                ),
+                              ),
+                            const SizedBox(width: 8),
+                            PopupMenuButton(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainer,
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  child: const Text(
+                                    "Delete",
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                  onTap: () {
+                                    provider.deleteBacktest(
+                                      backtest['id'] ?? backtest['_id'],
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -534,5 +611,36 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
         ],
       ),
     );
+  }
+
+  // Try multiple locations for a metric: result map, top-level, nested 'metrics' or 'stats'
+  String _metricValue(
+    Map<String, dynamic> backtest,
+    String key, {
+    bool percent = false,
+  }) {
+    dynamic val;
+    if (backtest['result'] is Map) {
+      final res = Map<String, dynamic>.from(backtest['result']);
+      if (res.containsKey(key)) val = res[key];
+      if (val == null && res['metrics'] is Map) val = res['metrics'][key];
+      if (val == null && res['stats'] is Map) val = res['stats'][key];
+    }
+
+    if (val == null && backtest.containsKey(key)) val = backtest[key];
+    if (val == null && backtest['result'] is Map) {
+      final res = Map<String, dynamic>.from(backtest['result']);
+      if (res.containsKey(key)) val = res[key];
+    }
+
+    if (val == null) return percent ? '0%' : '0';
+    try {
+      if (val is num) {
+        return percent ? "${val}%" : val.toString();
+      }
+      return val.toString();
+    } catch (_) {
+      return val.toString();
+    }
   }
 }
