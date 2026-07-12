@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/strategy_model.dart';
+import '../../state/backtest_provider.dart';
 import '../../state/strategies_provider.dart';
 
 class StrategyBuilderScreen extends StatefulWidget {
@@ -592,9 +593,36 @@ class _StrategyBuilderScreenState extends State<StrategyBuilderScreen> {
     if (!success) return;
 
     if (runBacktest) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Strategy saved and backtest started')),
-      );
+      if (_backtestRange == null) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Please select a backtest date range before running backtest.',
+            ),
+          ),
+        );
+      } else {
+        final backtestProvider = context.read<BacktestProvider>();
+        final backtestSuccess = await backtestProvider.runBacktest(
+          strategyName: _nameController.text.trim(),
+          symbol: _symbol,
+          timeframe: _timeframe,
+          startDate: _backtestRange!.start,
+          endDate: _backtestRange!.end,
+          initialCapital:
+              double.tryParse(_backtestCapitalController.text) ?? 10000,
+        );
+
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              backtestSuccess
+                  ? 'Strategy saved and backtest completed'
+                  : 'Strategy saved but backtest failed: ${backtestProvider.errorMessage ?? 'unknown'}',
+            ),
+          ),
+        );
+      }
     } else {
       messenger.showSnackBar(
         SnackBar(
@@ -1685,22 +1713,38 @@ class _StrategyBuilderScreenState extends State<StrategyBuilderScreen> {
                   ),
                 ),
               if (_currentStep > 0) const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton(
-                  onPressed: _isSaving
-                      ? null
-                      : _currentStep == _stepCount - 1
-                      ? () => _saveStrategy(runBacktest: false)
-                      : _nextStep,
-                  child: _isSaving
-                      ? const CircularProgressIndicator.adaptive()
-                      : Text(
-                          _currentStep == _stepCount - 1
-                              ? 'Create Strategy'
-                              : 'Next',
-                        ),
+              if (_currentStep == _stepCount - 1) ...[
+                Expanded(
+                  child: FilledButton(
+                    onPressed: _isSaving
+                        ? null
+                        : () => _saveStrategy(runBacktest: false),
+                    child: _isSaving
+                        ? const CircularProgressIndicator.adaptive()
+                        : const Text('Create Strategy'),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _isSaving
+                        ? null
+                        : () => _saveStrategy(runBacktest: true),
+                    child: _isSaving
+                        ? const CircularProgressIndicator.adaptive()
+                        : const Text('Save & Backtest'),
+                  ),
+                ),
+              ] else ...[
+                Expanded(
+                  child: FilledButton(
+                    onPressed: _isSaving ? null : _nextStep,
+                    child: _isSaving
+                        ? const CircularProgressIndicator.adaptive()
+                        : const Text('Next'),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

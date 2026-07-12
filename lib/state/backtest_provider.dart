@@ -44,10 +44,15 @@ class BacktestProvider extends ChangeNotifier {
   // Run Backtest
   // ============================================================
 
-  Future<void> runBacktest({
-    String symbol = "BTCUSDT",
-    String timeframe = "5m",
-    int days = 30,
+  Future<bool> runBacktest({
+    required String strategyName,
+    required String symbol,
+    required String timeframe,
+    required DateTime startDate,
+    required DateTime endDate,
+    double initialCapital = 100000.0,
+    double commission = 0.0,
+    double slippage = 0.0,
   }) async {
     _isRunning = true;
     _isLoading = true;
@@ -55,14 +60,24 @@ class BacktestProvider extends ChangeNotifier {
     _successMessage = null;
     _symbol = symbol;
     _timeframe = timeframe;
-    _days = days;
+    _days = endDate.difference(startDate).inDays.clamp(1, 3650);
     notifyListeners();
 
     try {
       // POST request to async backtest endpoint with parameters
       final response = await _api.postRequest(
         AppConfig.backtestAsync,
-        body: {'symbol': symbol, 'timeframe': timeframe, 'days': days},
+        body: {
+          'strategy_name': strategyName,
+          'symbol': symbol,
+          'timeframe': timeframe,
+          'start_date': startDate.toIso8601String(),
+          'end_date': endDate.toIso8601String(),
+          'days': _days,
+          'initial_capital': initialCapital,
+          'commission': commission,
+          'slippage': slippage,
+        },
       );
 
       final backtestId =
@@ -91,13 +106,15 @@ class BacktestProvider extends ChangeNotifier {
         await loadBacktestHistory(forceRefresh: true);
         _successMessage = 'Backtest completed successfully';
         _errorMessage = null;
-      } else {
-        throw Exception('Backtest ended with status: $status');
+        return true;
       }
+
+      throw Exception('Backtest ended with status: $status');
     } catch (e) {
       _successMessage = null;
       _errorMessage = e.toString();
       print('[BACKTEST] Error running backtest: $e');
+      return false;
     } finally {
       _isRunning = false;
       _isLoading = false;

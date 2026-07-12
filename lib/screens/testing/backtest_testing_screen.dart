@@ -29,8 +29,9 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
     _daysController = TextEditingController(text: "30");
 
     // Load history on first open
+    final provider = context.read<BacktestProvider>();
     Future.microtask(() {
-      context.read<BacktestProvider>().loadBacktestHistory();
+      provider.loadBacktestHistory();
     });
   }
 
@@ -45,6 +46,8 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
   void _runBacktest() {
     final symbol = _symbolController.text.trim();
     final days = int.tryParse(_daysController.text) ?? 30;
+    final endDate = DateTime.now();
+    final startDate = endDate.subtract(Duration(days: days));
 
     if (symbol.isEmpty) {
       ScaffoldMessenger.of(
@@ -54,9 +57,14 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
     }
 
     context.read<BacktestProvider>().runBacktest(
+      strategyName: 'Backtest Test',
       symbol: symbol,
       timeframe: _selectedTimeframe,
-      days: days,
+      startDate: startDate,
+      endDate: endDate,
+      initialCapital: 10000.0,
+      commission: 0.1,
+      slippage: 0.1,
     );
   }
 
