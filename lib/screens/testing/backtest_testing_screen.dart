@@ -6,7 +6,7 @@ import '../../state/backtest_provider.dart';
 /// Backtest Testing Screen
 /// ===============================================================
 class BacktestTestingScreen extends StatefulWidget {
-  const BacktestTestingScreen({Key? key}) : super(key: key);
+  const BacktestTestingScreen({super.key});
 
   @override
   State<BacktestTestingScreen> createState() => _BacktestTestingScreenState();
@@ -224,7 +224,7 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.2),
+                color: Colors.red.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.red, width: 0.5),
               ),
@@ -238,7 +238,7 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
               margin: const EdgeInsets.only(top: 12),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.2),
+                color: Colors.green.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.green, width: 0.5),
               ),
@@ -269,11 +269,11 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
                 ),
                 _buildResultCard(
                   "Win Rate",
-                  "${provider.currentBacktest!['win_rate']?.toString() ?? "0"}%",
+                  '${provider.currentBacktest!['win_rate']?.toString() ?? '0'}%',
                 ),
                 _buildResultCard(
-                  "Total Profit",
-                  "${provider.currentBacktest!['total_pnl']?.toString() ?? "0"}",
+                  'Total Profit',
+                  provider.currentBacktest!['total_pnl']?.toString() ?? '0',
                 ),
                 _buildResultCard(
                   "Profit Factor",
@@ -284,6 +284,94 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
         ],
       ),
     );
+  }
+
+  Color _resultCardColorFromMetrics(Map<String, dynamic> data) {
+    final netProfit = _metricDoubleValue(data, 'net_profit');
+    final wins = _metricIntValue(data, 'wins');
+    final losses = _metricIntValue(data, 'losses');
+
+    if (netProfit > 0 && wins > losses) {
+      return Colors.green;
+    }
+    if (netProfit < 0 || losses > wins) {
+      return Colors.red;
+    }
+    return Colors.orange;
+  }
+
+  String _statusLabelFromMetrics(Map<String, dynamic> data) {
+    final netProfit = _metricDoubleValue(data, 'net_profit');
+    if (netProfit > 0) return 'Profitable';
+    if (netProfit < 0) return 'Loss-making';
+    return 'Balanced';
+  }
+
+  String _formatCurrency(double value) => '₹${value.toStringAsFixed(2)}';
+
+  double _metricDoubleValue(Map<String, dynamic> data, String key) {
+    final source = data[key];
+    if (source is num) return source.toDouble();
+    return 0;
+  }
+
+  int _metricIntValue(Map<String, dynamic> data, String key) {
+    final source = data[key];
+    if (source is num) return source.toInt();
+    return 0;
+  }
+
+  Map<String, dynamic> _extractResultData(dynamic entry) {
+    if (entry is! Map) {
+      return <String, dynamic>{};
+    }
+
+    final raw = Map<String, dynamic>.from(entry);
+    if (raw['result'] is Map) {
+      final result = Map<String, dynamic>.from(raw['result']);
+      result.addAll(raw);
+      return result;
+    }
+
+    return raw;
+  }
+
+  List<dynamic> _sortedHistoryItems(List<dynamic> items) {
+    final sorted = [...items];
+    sorted.sort((a, b) {
+      final aData = _extractResultData(a);
+      final bData = _extractResultData(b);
+
+      final profitFactorCompare = _metricDoubleValue(
+        bData,
+        'profit_factor',
+      ).compareTo(_metricDoubleValue(aData, 'profit_factor'));
+      if (profitFactorCompare != 0) {
+        return profitFactorCompare;
+      }
+
+      final netProfitCompare = _metricDoubleValue(
+        bData,
+        'net_profit',
+      ).compareTo(_metricDoubleValue(aData, 'net_profit'));
+      if (netProfitCompare != 0) {
+        return netProfitCompare;
+      }
+
+      final winRateCompare = _metricDoubleValue(
+        bData,
+        'win_rate',
+      ).compareTo(_metricDoubleValue(aData, 'win_rate'));
+      if (winRateCompare != 0) {
+        return winRateCompare;
+      }
+
+      return _metricDoubleValue(
+        bData,
+        'wins',
+      ).compareTo(_metricDoubleValue(aData, 'wins'));
+    });
+    return sorted;
   }
 
   Widget _buildHistoryTab(BacktestProvider provider) {
@@ -303,7 +391,7 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
             const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 16),
             Text(
-              "Error loading history",
+              'Error loading history',
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 8),
@@ -328,7 +416,7 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
             const Icon(Icons.history, color: Colors.grey, size: 48),
             const SizedBox(height: 16),
             const Text(
-              "No backtest history",
+              'No backtest history',
               style: TextStyle(color: Colors.grey),
             ),
           ],
@@ -336,247 +424,288 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
       );
     }
 
+    final sortedHistory = _sortedHistoryItems(provider.backtestHistory);
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: provider.backtestHistory.length,
+      itemCount: sortedHistory.length,
       itemBuilder: (context, index) {
-        final backtest = provider.backtestHistory[index];
-        final data = backtest is Map && backtest['result'] is Map
-            ? Map<String, dynamic>.from(backtest['result'])
-            : Map<String, dynamic>.from(backtest as Map);
+        final historyEntry = sortedHistory[index];
+        final historyMap = historyEntry is Map
+            ? Map<String, dynamic>.from(historyEntry)
+            : <String, dynamic>{};
+        final data = _extractResultData(historyMap);
+        final cardColor = _resultCardColorFromMetrics(data);
+        final netProfit = _metricDoubleValue(data, 'net_profit');
+        final profitFactor = _metricDoubleValue(data, 'profit_factor');
 
         String createdAt = '';
-        if (backtest['created_at'] != null) {
-          try {
-            createdAt = backtest['created_at'].toString();
-          } catch (_) {
-            createdAt = backtest['created_at']?.toString() ?? '';
-          }
+        try {
+          createdAt = historyMap['created_at']?.toString() ?? '';
+        } catch (_) {
+          createdAt = '';
         }
 
-        return Card(
-          color: Theme.of(context).colorScheme.surfaceContainer,
+        final title =
+            '${data['symbol'] ?? historyMap['symbol'] ?? 'UNKNOWN'} - '
+            '${data['timeframe'] ?? historyMap['timeframe'] ?? '5m'}';
+        final subtitle =
+            data['strategy_name'] ?? historyMap['strategy_name'] ?? '';
+        final symbolText = data['symbol'] ?? historyMap['symbol'] ?? '';
+        final timeframeText =
+            data['timeframe'] ?? historyMap['timeframe'] ?? '';
+
+        return Container(
           margin: const EdgeInsets.only(bottom: 12),
-          child: ExpansionTile(
-            tilePadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            title: Text(
-              "${data['symbol'] ?? backtest['symbol'] ?? 'UNKNOWN'} - ${data['timeframe'] ?? backtest['timeframe'] ?? '5m'}",
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Text(
-              "${data['strategy_name'] ?? backtest['strategy_name'] ?? ''}",
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildResultCard(
-                            'Total Trades',
-                            _metricValue(
-                              backtest as Map<String, dynamic>,
-                              'total_trades',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildResultCard(
-                            'Win Rate',
-                            _metricValue(
-                              backtest as Map<String, dynamic>,
-                              'win_rate',
-                              percent: true,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildResultCard(
-                            'Net Profit',
-                            _metricValue(
-                              backtest as Map<String, dynamic>,
-                              'net_profit',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildResultCard(
-                            'Profit Factor',
-                            _metricValue(
-                              backtest as Map<String, dynamic>,
-                              'profit_factor',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildResultCard(
-                            'Gross Profit',
-                            _metricValue(
-                              backtest as Map<String, dynamic>,
-                              'gross_profit',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildResultCard(
-                            'Gross Loss',
-                            _metricValue(
-                              backtest as Map<String, dynamic>,
-                              'gross_loss',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildResultCard(
-                            'Drawdown',
-                            _metricValue(
-                              backtest as Map<String, dynamic>,
-                              'drawdown',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildResultCard(
-                            'Sharpe',
-                            _metricValue(
-                              backtest as Map<String, dynamic>,
-                              'sharpe_ratio',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    _buildResultCard(
-                      'Expectancy',
-                      _metricValue(
-                        backtest as Map<String, dynamic>,
-                        'expectancy',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Details',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Symbol: ${data['symbol'] ?? backtest['symbol'] ?? ''}',
-                    ),
-                    Text(
-                      'Timeframe: ${data['timeframe'] ?? backtest['timeframe'] ?? ''}',
-                    ),
-                    Text('Days: ${data['days'] ?? backtest['days'] ?? ''}'),
-                    Text('Created: $createdAt'),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Status: ${backtest['status'] ?? 'unknown'}',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            if ((backtest['status'] ?? '') == 'failed')
-                              ElevatedButton.icon(
-                                onPressed: provider.isRunning
-                                    ? null
-                                    : () async {
-                                        final ok = await provider.retryBacktest(
-                                          backtest as Map<String, dynamic>,
-                                        );
-                                        if (ok) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text('Retry started'),
-                                            ),
-                                          );
-                                        } else {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Retry failed to start',
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                icon: const Icon(Icons.refresh),
-                                label: const Text('Retry'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange,
-                                ),
-                              ),
-                            const SizedBox(width: 8),
-                            PopupMenuButton(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainer,
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  child: const Text(
-                                    "Delete",
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                  onTap: () {
-                                    provider.deleteBacktest(
-                                      backtest['id'] ?? backtest['_id'],
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: cardColor, width: 4.5),
+            boxShadow: [
+              BoxShadow(
+                color: cardColor.withValues(alpha: 0.14),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: ExpansionTile(
+              tilePadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              leading: Icon(Icons.show_chart, color: cardColor),
+              title: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: cardColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: cardColor.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Text(
+                      _statusLabelFromMetrics(data),
+                      style: TextStyle(
+                        color: cardColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              subtitle: Text(
+                'Net Profit ${_formatCurrency(netProfit)} • PF ${profitFactor.toStringAsFixed(2)}',
+                style: TextStyle(
+                  color: cardColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildResultCard(
+                              'Total Trades',
+                              _metricValue(data, 'total_trades'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildResultCard(
+                              'Win Rate',
+                              _metricValue(data, 'win_rate', percent: true),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildResultCard(
+                              'Net Profit',
+                              _metricValue(data, 'net_profit'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildResultCard(
+                              'Profit Factor',
+                              _metricValue(data, 'profit_factor'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildResultCard(
+                              'Gross Profit',
+                              _metricValue(data, 'gross_profit'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildResultCard(
+                              'Gross Loss',
+                              _metricValue(data, 'gross_loss'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildResultCard(
+                              'Drawdown',
+                              _metricValue(data, 'drawdown'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildResultCard(
+                              'Sharpe',
+                              _metricValue(data, 'sharpe_ratio'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _buildResultCard(
+                        'Expectancy',
+                        _metricValue(data, 'expectancy'),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Details',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text('Symbol: $symbolText'),
+                      Text('Timeframe: $timeframeText'),
+                      Text('Days: ${data['days'] ?? historyMap['days'] ?? ''}'),
+                      Text('Created: $createdAt'),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Status: ${historyMap['status'] ?? 'unknown'}',
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              if ((historyMap['status'] ?? '') == 'failed')
+                                ElevatedButton.icon(
+                                  onPressed: provider.isRunning
+                                      ? null
+                                      : () async {
+                                          final ok = await provider
+                                              .retryBacktest(historyMap);
+                                          if (!mounted) return;
+                                          if (!context.mounted) return;
+                                          final messenger =
+                                              ScaffoldMessenger.of(context);
+                                          if (ok) {
+                                            messenger.showSnackBar(
+                                              const SnackBar(
+                                                content: Text('Retry started'),
+                                              ),
+                                            );
+                                          } else {
+                                            messenger.showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Retry failed to start',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Retry'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                ),
+                              const SizedBox(width: 8),
+                              PopupMenuButton(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainer,
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    child: const Text(
+                                      'Delete',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                    onTap: () {
+                                      provider.deleteBacktest(
+                                        historyMap['id'] ?? historyMap['_id'],
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -636,7 +765,7 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
     if (val == null) return percent ? '0%' : '0';
     try {
       if (val is num) {
-        return percent ? "${val}%" : val.toString();
+        return percent ? '$val%' : val.toString();
       }
       return val.toString();
     } catch (_) {
