@@ -106,6 +106,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
   String _formatDate(DateTime dateTime) =>
       dateTime.toLocal().toString().substring(0, 19);
 
+  String _expansionKey(BacktestResult result, int index) {
+    final id = result.id.trim();
+    if (id.isNotEmpty) return id;
+    return 'history_$index';
+  }
+
   Widget _summaryChip(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -224,7 +230,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         itemBuilder: (context, index) {
           final result = sortedResults[index];
           final cardColor = _resultCardColor(result);
-          final expanded = _expandedIds.contains(result.id);
+          final expansionKey = _expansionKey(result, index);
+          final expanded = _expandedIds.contains(expansionKey);
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 16),
@@ -233,25 +240,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
               onTap: () {
                 setState(() {
                   if (expanded) {
-                    _expandedIds.remove(result.id);
+                    _expandedIds.remove(expansionKey);
                   } else {
                     _expandedIds.clear();
-                    _expandedIds.add(result.id);
+                    _expandedIds.add(expansionKey);
                   }
                 });
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: cardColor.withOpacity(0.1),
+                  color: Colors.transparent,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: cardColor.withOpacity(0.75),
-                    width: 1.5,
-                  ),
+                  border: Border.all(color: cardColor, width: 2.5),
                   boxShadow: [
                     BoxShadow(
-                      color: cardColor.withOpacity(0.18),
-                      blurRadius: 10,
+                      color: cardColor.withOpacity(0.14),
+                      blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
