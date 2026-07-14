@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:market_app/utils/responsive.dart';
 
 import '../models/strategy_models.dart';
 import '../state/strategy_builder_provider.dart';
@@ -54,10 +55,11 @@ class _Step2ConditionsState extends State<Step2Conditions>
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
     final provider = context.watch<StrategyBuilderProvider>();
 
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isMobile ? 14 : 20),
       child: Column(
         children: [
           Container(
@@ -73,6 +75,11 @@ class _Step2ConditionsState extends State<Step2Conditions>
                 color: const Color(0xFF3B82F6),
                 borderRadius: BorderRadius.circular(14),
               ),
+              labelStyle: TextStyle(
+                fontSize: isMobile ? 11 : 13,
+                fontWeight: FontWeight.w600,
+              ),
+              unselectedLabelStyle: TextStyle(fontSize: isMobile ? 10 : 12),
               labelColor: Colors.white,
               unselectedLabelColor: Colors.grey,
               tabs: const [
@@ -83,7 +90,7 @@ class _Step2ConditionsState extends State<Step2Conditions>
             ),
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: isMobile ? 16 : 20),
 
           Expanded(
             child: TabBarView(
@@ -101,7 +108,7 @@ class _Step2ConditionsState extends State<Step2Conditions>
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: isMobile ? 16 : 20),
 
           Row(
             children: [
@@ -114,7 +121,7 @@ class _Step2ConditionsState extends State<Step2Conditions>
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: Color(0xFF3B82F6)),
-                    minimumSize: const Size.fromHeight(50),
+                    minimumSize: Size.fromHeight(isMobile ? 48 : 50),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -132,6 +139,8 @@ class _Step2ConditionsState extends State<Step2Conditions>
     required bool buySide,
     required List<Condition> items,
   }) {
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
+
     if (items.isEmpty) {
       return Center(
         child: Column(
@@ -139,32 +148,34 @@ class _Step2ConditionsState extends State<Step2Conditions>
           children: [
             Icon(
               Icons.analytics_outlined,
-              size: 70,
+              size: isMobile ? 60 : 70,
               color: Colors.grey.shade700,
             ),
-            const SizedBox(height: 20),
-            const Text(
+            SizedBox(height: isMobile ? 14 : 20),
+            Text(
               "No Conditions Added",
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
+                fontSize: isMobile ? 18 : 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 10),
-            const Text(
-              "Tap 'Add Condition' to create your first trading rule.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
+            SizedBox(height: 10),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 36),
+              child: Text(
+                "Tap 'Add Condition' to create your first trading rule.",
+                style: const TextStyle(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: isMobile ? 18 : 30),
             ElevatedButton.icon(
               onPressed: () => _openIndicatorLibrary(buySide),
               icon: const Icon(Icons.add),
               label: const Text("Add First Condition"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3B82F6),
-                minimumSize: const Size(220, 50),
+                minimumSize: Size(isMobile ? 180 : 220, 50),
               ),
             ),
           ],
@@ -187,14 +198,14 @@ class _Step2ConditionsState extends State<Step2Conditions>
 
         return Card(
           key: ValueKey(condition.id),
-          margin: const EdgeInsets.only(bottom: 14),
+          margin: EdgeInsets.only(bottom: isMobile ? 12 : 14),
           color: const Color(0xFF111827),
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             child: Column(
               children: [
                 Row(
@@ -207,21 +218,22 @@ class _Step2ConditionsState extends State<Step2Conditions>
                       ),
                     ),
 
-                    const SizedBox(width: 14),
+                    SizedBox(width: isMobile ? 10 : 14),
 
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          SizedBox(height: isMobile ? 0 : 0),
                           Text(
                             condition.indicator.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 17,
+                              fontSize: isMobile ? 15 : 17,
                               color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           Text(
                             condition.indicator.category,
                             style: const TextStyle(color: Colors.grey),
@@ -229,6 +241,7 @@ class _Step2ConditionsState extends State<Step2Conditions>
                         ],
                       ),
                     ),
+
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -245,18 +258,18 @@ class _Step2ConditionsState extends State<Step2Conditions>
                         style: TextStyle(
                           color: buySide ? Colors.green : Colors.red,
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                          fontSize: isMobile ? 11 : 12,
                         ),
                       ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                SizedBox(height: isMobile ? 12 : 16),
 
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(14),
+                  padding: EdgeInsets.all(isMobile ? 12 : 14),
                   decoration: BoxDecoration(
                     color: const Color(0xFF0B1220),
                     borderRadius: BorderRadius.circular(12),
@@ -279,15 +292,14 @@ class _Step2ConditionsState extends State<Step2Conditions>
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                SizedBox(height: isMobile ? 12 : 16),
 
                 Row(
                   children: [
                     IconButton(
                       tooltip: "Edit",
                       onPressed: () {
-                        // TODO:
-                        // Open indicator configuration dialog
+                        // TODO: Open indicator configuration dialog
                       },
                       icon: const Icon(Icons.edit_outlined, color: Colors.blue),
                     ),

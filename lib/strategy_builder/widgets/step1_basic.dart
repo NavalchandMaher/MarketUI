@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:market_app/utils/responsive.dart';
 import '../state/strategy_builder_provider.dart';
 import '../models/strategy_models.dart';
 
@@ -26,6 +27,12 @@ class _Step1BasicState extends State<Step1Basic> {
   Widget build(BuildContext context) {
     final provider = Provider.of<StrategyBuilderProvider>(context);
     final model = provider.model;
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
+    final sectionSpacing = isMobile ? 12.0 : 16.0;
+    final fieldPadding = isMobile
+        ? const EdgeInsets.symmetric(vertical: 12, horizontal: 14)
+        : const EdgeInsets.symmetric(vertical: 16, horizontal: 18);
+    final labelStyle = TextStyle(fontSize: isMobile ? 14 : 16);
 
     if (_nameCtl.text != model.name) {
       _nameCtl.text = model.name;
@@ -41,38 +48,43 @@ class _Step1BasicState extends State<Step1Basic> {
     }
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(isMobile ? 14 : 16),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
+            SizedBox(height: isMobile ? 6 : 8),
             const Text(
               'Define the core settings of your strategy.',
               style: TextStyle(color: Colors.grey),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: sectionSpacing),
             TextField(
               controller: _nameCtl,
               decoration: InputDecoration(
                 labelText: 'Strategy Name',
                 filled: true,
                 fillColor: const Color(0xFF0B1220),
+                contentPadding: fieldPadding,
+                labelStyle: labelStyle,
               ),
               onChanged: (v) => provider.updateBasic(name: v),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: sectionSpacing),
             TextField(
               controller: _descCtl,
               decoration: InputDecoration(
                 labelText: 'Description',
                 filled: true,
                 fillColor: const Color(0xFF0B1220),
+                contentPadding: fieldPadding,
+                labelStyle: labelStyle,
               ),
               onChanged: (v) => provider.updateBasic(description: v),
               maxLines: 3,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: sectionSpacing),
             Row(
               children: [
                 Expanded(
@@ -83,10 +95,15 @@ class _Step1BasicState extends State<Step1Basic> {
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
                     onChanged: (v) => provider.updateBasic(exchange: v),
-                    decoration: const InputDecoration(labelText: 'Exchange'),
+                    decoration: InputDecoration(
+                      labelText: 'Exchange',
+                      isDense: true,
+                      contentPadding: fieldPadding,
+                      labelStyle: labelStyle,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: isMobile ? 10 : 12),
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     key: ValueKey(model.timeframe),
@@ -95,12 +112,17 @@ class _Step1BasicState extends State<Step1Basic> {
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
                     onChanged: (v) => provider.updateBasic(timeframe: v),
-                    decoration: const InputDecoration(labelText: 'Timeframe'),
+                    decoration: InputDecoration(
+                      labelText: 'Timeframe',
+                      isDense: true,
+                      contentPadding: fieldPadding,
+                      labelStyle: labelStyle,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: sectionSpacing),
             Row(
               children: [
                 Expanded(
@@ -111,12 +133,15 @@ class _Step1BasicState extends State<Step1Basic> {
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
                     onChanged: (v) => provider.updateBasic(strategyType: v),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Strategy Type',
+                      isDense: true,
+                      contentPadding: fieldPadding,
+                      labelStyle: labelStyle,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: isMobile ? 10 : 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,12 +170,12 @@ class _Step1BasicState extends State<Step1Basic> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: sectionSpacing),
             const Text(
               'Templates',
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: isMobile ? 8 : 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -165,7 +190,7 @@ class _Step1BasicState extends State<Step1Basic> {
                 _templateChip(provider, 'Custom'),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: sectionSpacing),
             // if (widget.onNext != null)
             //   Align(
             //     alignment: Alignment.centerRight,
@@ -202,7 +227,12 @@ class _Step1BasicState extends State<Step1Basic> {
     }
     return ActionChip(
       backgroundColor: const Color(0xFF111827),
-      label: Text(label),
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: ResponsiveBreakpoints.isMobile(context) ? 12 : 14,
+        ),
+      ),
       onPressed: () => provider.loadTemplate(tmpl),
     );
   }

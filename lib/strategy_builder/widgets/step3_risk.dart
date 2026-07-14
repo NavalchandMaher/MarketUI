@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:market_app/utils/responsive.dart';
 
 import '../models/strategy_models.dart';
 import '../state/strategy_builder_provider.dart';
@@ -53,13 +54,21 @@ class _Step3RiskState extends State<Step3Risk> {
     final provider = context.watch<StrategyBuilderProvider>();
     final RiskSettings risk = provider.model.riskSettings;
 
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
+    final outerPadding = EdgeInsets.all(isMobile ? 14 : 20);
+    final cardPadding = EdgeInsets.all(isMobile ? 14 : 20);
+    final fieldSpacing = isMobile ? 12.0 : 16.0;
+    final inputPadding = isMobile
+        ? const EdgeInsets.symmetric(vertical: 12, horizontal: 12)
+        : const EdgeInsets.symmetric(vertical: 16, horizontal: 14);
+
     riskController.text = risk.riskPerTrade.toString();
     rrController.text = risk.rr.toString();
     dailyTradeController.text = risk.maxDailyTrades.toString();
     openTradeController.text = risk.maxOpenTrades.toString();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: outerPadding,
       child: Column(
         children: [
           Card(
@@ -69,23 +78,29 @@ class _Step3RiskState extends State<Step3Risk> {
               borderRadius: BorderRadius.circular(18),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: cardPadding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "Risk Management",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: isMobile ? 20 : 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
 
-                  const SizedBox(height: 6),
+                  SizedBox(height: isMobile ? 6 : 6),
 
-                  const Text(
+                  Text(
                     "Configure money management and protection rules.",
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: isMobile ? 13 : 14,
+                    ),
                   ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: isMobile ? 18 : 24),
 
                   Row(
                     children: [
@@ -93,29 +108,33 @@ class _Step3RiskState extends State<Step3Risk> {
                         child: TextFormField(
                           controller: riskController,
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: "Risk %",
-                            prefixIcon: Icon(Icons.percent),
+                            prefixIcon: const Icon(Icons.percent),
+                            contentPadding: inputPadding,
+                            isDense: true,
                           ),
                         ),
                       ),
 
-                      const SizedBox(width: 16),
+                      SizedBox(width: isMobile ? 12 : 16),
 
                       Expanded(
                         child: TextFormField(
                           controller: rrController,
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: "Risk Reward",
-                            prefixIcon: Icon(Icons.balance),
+                            prefixIcon: const Icon(Icons.balance),
+                            contentPadding: inputPadding,
+                            isDense: true,
                           ),
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 20),
+                  SizedBox(height: fieldSpacing),
 
                   Row(
                     children: [
@@ -123,29 +142,33 @@ class _Step3RiskState extends State<Step3Risk> {
                         child: TextFormField(
                           controller: dailyTradeController,
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: "Max Daily Trades",
-                            prefixIcon: Icon(Icons.today),
+                            prefixIcon: const Icon(Icons.today),
+                            contentPadding: inputPadding,
+                            isDense: true,
                           ),
                         ),
                       ),
 
-                      const SizedBox(width: 16),
+                      SizedBox(width: isMobile ? 12 : 16),
 
                       Expanded(
                         child: TextFormField(
                           controller: openTradeController,
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: "Max Open Trades",
-                            prefixIcon: Icon(Icons.bar_chart),
+                            prefixIcon: const Icon(Icons.bar_chart),
+                            contentPadding: inputPadding,
+                            isDense: true,
                           ),
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 20),
+                  SizedBox(height: fieldSpacing),
 
                   DropdownButtonFormField<String>(
                     value: positionSizing,
@@ -190,18 +213,21 @@ class _Step3RiskState extends State<Step3Risk> {
                       });
                     },
                   ),
-                  const SizedBox(height: 28),
+                  SizedBox(height: isMobile ? 20 : 28),
 
                   const Divider(),
 
-                  const SizedBox(height: 16),
+                  SizedBox(height: isMobile ? 12 : 16),
 
-                  const Text(
+                  Text(
                     "Advanced Protection",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: isMobile ? 16 : 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
 
-                  const SizedBox(height: 16),
+                  SizedBox(height: isMobile ? 12 : 16),
 
                   SwitchListTile(
                     value: equityProtection,
@@ -273,11 +299,11 @@ class _Step3RiskState extends State<Step3Risk> {
                     },
                   ),
 
-                  const SizedBox(height: 30),
+                  SizedBox(height: isMobile ? 20 : 30),
 
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isMobile ? 12 : 16),
                     decoration: BoxDecoration(
                       color: const Color(0xFF0B1220),
                       borderRadius: BorderRadius.circular(14),
@@ -286,15 +312,15 @@ class _Step3RiskState extends State<Step3Risk> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           "Risk Summary",
                           style: TextStyle(
-                            fontSize: 17,
+                            fontSize: isMobile ? 16 : 17,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
 
-                        const SizedBox(height: 16),
+                        SizedBox(height: isMobile ? 12 : 16),
 
                         _summaryTile(
                           "Risk Per Trade",

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:market_app/state/strategies_provider.dart';
+import 'package:market_app/utils/responsive.dart';
 
 import 'step1_basic.dart';
 import 'step2_conditions.dart';
@@ -110,6 +111,8 @@ class _WizardScaffoldState extends State<WizardScaffold>
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
+
     return AppBar(
       elevation: 0,
       backgroundColor: const Color(0xFF0B1220),
@@ -129,8 +132,8 @@ class _WizardScaffoldState extends State<WizardScaffold>
             child: Text(
               widget.isEdit ? "Edit Strategy" : "New Strategy Builder",
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 24,
+              style: TextStyle(
+                fontSize: isMobile ? 20 : 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -182,6 +185,11 @@ class _WizardScaffoldState extends State<WizardScaffold>
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
+    final horizontalMargin = isMobile ? 12.0 : 20.0;
+    final bottomSpacing = isMobile ? 16.0 : 20.0;
+    final buttonGap = isMobile ? 10.0 : 16.0;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0B1220),
       appBar: _buildAppBar(),
@@ -189,15 +197,15 @@ class _WizardScaffoldState extends State<WizardScaffold>
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 8),
+            SizedBox(height: isMobile ? 12 : 8),
 
             StepperHeader(step: _currentStep),
 
-            const SizedBox(height: 20),
+            SizedBox(height: isMobile ? 16 : 20),
 
             Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
+                margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
                 decoration: BoxDecoration(
                   color: const Color(0xFF111827),
                   borderRadius: BorderRadius.circular(20),
@@ -224,7 +232,7 @@ class _WizardScaffoldState extends State<WizardScaffold>
               ),
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: bottomSpacing),
             Container(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
               decoration: const BoxDecoration(
@@ -249,7 +257,7 @@ class _WizardScaffoldState extends State<WizardScaffold>
                     ),
                   ),
 
-                  const SizedBox(width: 16),
+                  SizedBox(width: buttonGap),
 
                   Expanded(
                     child: ElevatedButton.icon(
