@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/strategy_model.dart';
-import '../../screens/trading/strategy_builder_screen.dart';
+import '../../strategy_builder/screens/strategy_builder_screen.dart';
 import '../../state/strategies_provider.dart';
 
 /// ===============================================================

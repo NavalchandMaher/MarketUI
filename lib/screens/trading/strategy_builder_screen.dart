@@ -1019,19 +1019,29 @@ class _StrategyBuilderScreenState extends State<StrategyBuilderScreen> {
   }
 
   Widget _buildStepContent() {
+    late Widget content;
     switch (_currentStep) {
       case 0:
-        return _buildBasicSection();
+        content = _buildBasicSection();
+        break;
       case 1:
-        return _buildConditionsSection();
+        content = _buildConditionsSection();
+        break;
       case 2:
-        return _buildRiskSection();
+        content = _buildRiskSection();
+        break;
       case 3:
-        return _buildBacktestSection();
-      case 4:
+        content = _buildBacktestSection();
+        break;
       default:
-        return _buildReviewSection();
+        content = _buildReviewSection();
+        break;
     }
+
+    return KeyedSubtree(
+      key: ValueKey<int>(_currentStep),
+      child: SizedBox(width: double.infinity, child: content),
+    );
   }
 
   Widget _buildBasicSection() {
@@ -1676,6 +1686,17 @@ class _StrategyBuilderScreenState extends State<StrategyBuilderScreen> {
                         const SizedBox(height: 12),
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
+                          switchInCurve: Curves.easeOut,
+                          switchOutCurve: Curves.easeIn,
+                          layoutBuilder: (currentChild, previousChildren) {
+                            return Stack(
+                              alignment: Alignment.topCenter,
+                              children: [
+                                ...previousChildren,
+                                if (currentChild != null) currentChild,
+                              ],
+                            );
+                          },
                           child: _buildStepContent(),
                         ),
                         const SizedBox(height: 96),

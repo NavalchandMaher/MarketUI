@@ -35,7 +35,11 @@ class PublicApiService {
     try {
       print('[PUBLIC_API] Fetching fresh symbols...');
       _cachedSymbols =
-          await _api.getRequest('/public/symbols', cacheTtl: 3600)
+          await _api.getRequest(
+                '/public/symbols',
+                cacheTtl: 3600,
+                requireAuth: false,
+              )
               as List<dynamic>? ??
           [];
       _symbolsCachedAt = DateTime.now();
@@ -67,7 +71,11 @@ class PublicApiService {
     try {
       print('[PUBLIC_API] Fetching fresh timeframes...');
       _cachedTimeframes =
-          await _api.getRequest('/public/timeframes', cacheTtl: 3600)
+          await _api.getRequest(
+                '/public/timeframes',
+                cacheTtl: 3600,
+                requireAuth: false,
+              )
               as List<dynamic>? ??
           [];
       _timeframesCachedAt = DateTime.now();

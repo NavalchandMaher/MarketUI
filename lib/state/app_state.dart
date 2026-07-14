@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
 import '../models/analysis_model.dart';
 import '../service_locator.dart';
+import '../services/api/auth_service.dart';
 import '../services/api/v3_api_service.dart';
 import '../services/network/connectivity_service.dart';
 import '../utils/constants.dart';
@@ -18,6 +19,7 @@ class AppState extends ChangeNotifier {
   static const _refreshIntervalKey = 'refresh_interval_seconds';
   static const _pushNotificationsKey = 'push_notifications_enabled';
 
+  late final AuthService _authService;
   late final V3ApiService _api;
   late final ConnectivityService _connectivityService;
   Timer? _refreshTimer;
@@ -45,6 +47,7 @@ class AppState extends ChangeNotifier {
   Map<String, dynamic>? performance;
 
   AppState() {
+    _authService = getIt<AuthService>();
     _api = getIt<V3ApiService>();
     _connectivityService = getIt<ConnectivityService>();
     _connectivityService.addListener(_onConnectivityChanged);
@@ -54,9 +57,13 @@ class AppState extends ChangeNotifier {
   Future<void> _initialize() async {
     await _loadPreferences();
     isOnline = await _connectivityService.checkConnectivity();
-    await refreshHomeData();
+
+    if (_authService.isAuthenticated) {
+      await refreshHomeData();
+      _startAutoRefresh();
+    }
+
     isReady = true;
-    _startAutoRefresh();
     notifyListeners();
   }
 
@@ -164,6 +171,17 @@ class AppState extends ChangeNotifier {
   Future<void> refreshHomeData() async {
     if (isLoading || isRefreshing) return;
 
+    if (!_authService.isAuthenticated) {
+      errorMessage = 'User is not authenticated';
+      if (analysis == null) {
+        isLoading = false;
+      } else {
+        isRefreshing = false;
+      }
+      notifyListeners();
+      return;
+    }
+
     final initialLoad = analysis == null;
     if (initialLoad) {
       isLoading = true;
@@ -220,7 +238,9 @@ class AppState extends ChangeNotifier {
     isOnline = online;
     if (online) {
       notificationMessage = 'Back online. Refreshing data.';
-      refreshHomeData();
+      if (_authService.isAuthenticated) {
+        refreshHomeData();
+      }
     } else {
       if (pushNotificationsEnabled) {
         notificationMessage =
@@ -232,7 +252,10 @@ class AppState extends ChangeNotifier {
 
   void _startAutoRefresh() {
     _refreshTimer?.cancel();
-    if (!autoRefreshEnabled || refreshIntervalSeconds <= 0) return;
+    if (!_authService.isAuthenticated ||
+        !autoRefreshEnabled ||
+        refreshIntervalSeconds <= 0)
+      return;
 
     _refreshTimer = Timer.periodic(Duration(seconds: refreshIntervalSeconds), (
       _,

@@ -66,8 +66,43 @@ class AuthService {
   }
 
   Map<String, dynamic>? get currentUser => _currentUser;
-  bool get isAuthenticated => _accessToken != null;
+  bool get isAuthenticated => _accessToken != null && _accessToken!.isNotEmpty;
+  bool get hasRefreshToken =>
+      _refreshToken != null && _refreshToken!.isNotEmpty;
   bool get isInitialized => _isInitialized;
+
+  // ============================================================
+  // Ensure authentication before protected requests
+  // ============================================================
+
+  Future<bool> ensureAuthenticated({bool allowRefresh = true}) async {
+    if (isAuthenticated) {
+      return true;
+    }
+
+    if (!allowRefresh || !hasRefreshToken) {
+      _log(
+        "[AUTH] Unable to restore authenticated session: no access token and no refresh token available.",
+      );
+      return false;
+    }
+
+    _log(
+      "[AUTH] No access token in memory; attempting session restore with refresh token...",
+    );
+    try {
+      await refreshAccessToken();
+      if (isAuthenticated) {
+        _log("[AUTH] Session restored successfully from refresh token.");
+        return true;
+      }
+      _log("[AUTH] Session restore completed but access token still missing.");
+      return false;
+    } catch (e) {
+      _log("[AUTH] Session restore failed: $e");
+      return false;
+    }
+  }
 
   // ============================================================
   // Initialize - Load tokens from secure storage
@@ -75,9 +110,12 @@ class AuthService {
 
   Future<void> initialize() async {
     _log("=== AuthService.initialize() START ===");
-    _log("[DEBUG] Calling secureStorage.getAccessToken()...");
+    _log("[DEBUG] Ensuring storage is initialized...");
 
     try {
+      await _storageService.initialize();
+
+      _log("[DEBUG] Calling secureStorage.getAccessToken()...");
       _accessToken = await _storageService.getAccessToken();
       _log(
         "[DEBUG] getAccessToken() returned: ${_accessToken != null ? _accessToken!.substring(0, min(20, _accessToken!.length)) + '...' : 'NULL'}",
@@ -88,6 +126,17 @@ class AuthService {
       _log(
         "[DEBUG] getRefreshToken() returned: ${_refreshToken != null ? _refreshToken!.substring(0, min(20, _refreshToken!.length)) + '...' : 'NULL'}",
       );
+
+      if (_accessToken == null && _refreshToken != null) {
+        _log(
+          "[DEBUG] AccessToken missing but RefreshToken exists. Attempting silent refresh...",
+        );
+        try {
+          await refreshAccessToken();
+        } catch (e) {
+          _log("[DEBUG] Silent refresh failed: $e");
+        }
+      }
 
       _isInitialized = true;
 

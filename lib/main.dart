@@ -20,6 +20,7 @@ import 'state/learning_logs_provider.dart';
 import 'state/backtest_provider.dart';
 import 'state/scheduler_provider.dart';
 import 'theme/app_theme.dart';
+import 'strategy_builder/screens/strategy_builder_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -85,6 +86,7 @@ class MarketAIApp extends StatelessWidget {
             '/register': (context) => const RegisterScreen(),
             '/forgot-password': (context) => const ForgotPasswordScreen(),
             '/home': (context) => const ResponsiveAppShell(),
+            '/strategy-builder': (context) => const StrategyBuilderScreen(),
           },
         );
       },

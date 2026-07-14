@@ -1,0 +1,199 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../state/strategy_builder_provider.dart';
+import '../models/strategy_models.dart';
+
+class Step1Basic extends StatefulWidget {
+  final VoidCallback? onNext;
+  const Step1Basic({super.key, this.onNext});
+
+  @override
+  State<Step1Basic> createState() => _Step1BasicState();
+}
+
+class _Step1BasicState extends State<Step1Basic> {
+  final _nameCtl = TextEditingController();
+  final _descCtl = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameCtl.dispose();
+    _descCtl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = Provider.of<StrategyBuilderProvider>(context);
+    final model = provider.model;
+
+    _nameCtl.text = model.name;
+    _descCtl.text = model.description;
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            const Text(
+              'Define the core settings of your strategy.',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _nameCtl,
+              decoration: InputDecoration(
+                labelText: 'Strategy Name',
+                filled: true,
+                fillColor: const Color(0xFF0B1220),
+              ),
+              onChanged: (v) => provider.updateBasic(name: v),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _descCtl,
+              decoration: InputDecoration(
+                labelText: 'Description',
+                filled: true,
+                fillColor: const Color(0xFF0B1220),
+              ),
+              onChanged: (v) => provider.updateBasic(description: v),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    key: ValueKey(model.exchange),
+                    initialValue: model.exchange,
+                    items: ['BINANCE', 'COINBASE', 'KRAKEN']
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (v) => provider.updateBasic(exchange: v),
+                    decoration: const InputDecoration(labelText: 'Exchange'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    key: ValueKey(model.timeframe),
+                    initialValue: model.timeframe,
+                    items: ['1m', '5m', '15m', '1h', '4h']
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (v) => provider.updateBasic(timeframe: v),
+                    decoration: const InputDecoration(labelText: 'Timeframe'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    key: ValueKey(model.strategyType),
+                    initialValue: model.strategyType,
+                    items: ['Scalping', 'Swing', 'Trend']
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (v) => provider.updateBasic(strategyType: v),
+                    decoration: const InputDecoration(
+                      labelText: 'Strategy Type',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Trading Mode'),
+                      const SizedBox(height: 6),
+                      ToggleButtons(
+                        isSelected: [model.paperMode, model.liveMode],
+                        onPressed: (i) => provider.updateBasic(
+                          paperMode: i == 0,
+                          liveMode: i == 1,
+                        ),
+                        children: const [
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text('Paper'),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text('Live'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Templates',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _templateChip(provider, 'EMA Scalping'),
+                _templateChip(provider, 'EMA Swing'),
+                _templateChip(provider, 'Supertrend'),
+                _templateChip(provider, 'Breakout'),
+                _templateChip(provider, 'VWAP'),
+                _templateChip(provider, 'MACD'),
+                _templateChip(provider, 'RSI'),
+                _templateChip(provider, 'Custom'),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // if (widget.onNext != null)
+            //   Align(
+            //     alignment: Alignment.centerRight,
+            //     child: ElevatedButton(
+            //       onPressed: widget.onNext,
+            //       child: const Text('Next'),
+            //     ),
+            //   ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _templateChip(StrategyBuilderProvider provider, String label) {
+    StrategyModel tmpl;
+    switch (label) {
+      case 'EMA Scalping':
+        tmpl = StrategyModel(
+          name: 'EMA Scalping',
+          strategyType: 'Scalping',
+          buyConditions: [],
+          sellConditions: [],
+        );
+        break;
+      case 'EMA Swing':
+        tmpl = StrategyModel(name: 'EMA Swing', strategyType: 'Swing');
+        break;
+      case 'Supertrend':
+        tmpl = StrategyModel(name: 'Supertrend', strategyType: 'Trend');
+        break;
+      default:
+        tmpl = StrategyModel(name: label);
+    }
+    return ActionChip(
+      backgroundColor: const Color(0xFF111827),
+      label: Text(label),
+      onPressed: () => provider.loadTemplate(tmpl),
+    );
+  }
+}

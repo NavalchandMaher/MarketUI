@@ -82,7 +82,19 @@ class V3ApiService {
     String endpoint, {
     int cacheTtl = 60, // Cache TTL in seconds (0 = no cache)
     bool forceRefresh = false,
+    bool requireAuth = true,
   }) async {
+    if (requireAuth && !authService.isAuthenticated) {
+      _log("[DEBUG] Auth missing before GET request. Attempting restore...");
+      final restored = await authService.ensureAuthenticated();
+      if (!restored) {
+        _log(
+          "✗ AUTHENTICATION REQUIRED: Aborting request to $endpoint because user is not authenticated.",
+        );
+        throw AuthenticationException("User is not authenticated");
+      }
+    }
+
     if (!connectivityService.isOnline) {
       final offlineCached = cacheService.get(endpoint, ttlSeconds: cacheTtl);
       if (offlineCached != null) {
@@ -105,7 +117,7 @@ class V3ApiService {
       final uri = Uri.parse("${AppConfig.baseUrl}$endpoint");
       _log("[DEBUG] Starting GET request to: $uri");
 
-      final headers = _authHeaders;
+      final headers = requireAuth ? _authHeaders : _headers;
       _log(
         "[DEBUG] Headers built, Authorization header included: ${headers.containsKey('Authorization')}",
       );
@@ -152,7 +164,19 @@ class V3ApiService {
   Future<dynamic> postRequest(
     String endpoint, {
     Map<String, dynamic>? body,
+    bool requireAuth = true,
   }) async {
+    if (requireAuth && !authService.isAuthenticated) {
+      _log("[DEBUG] Auth missing before POST request. Attempting restore...");
+      final restored = await authService.ensureAuthenticated();
+      if (!restored) {
+        _log(
+          "✗ AUTHENTICATION REQUIRED: Aborting POST request to $endpoint because user is not authenticated.",
+        );
+        throw AuthenticationException("User is not authenticated");
+      }
+    }
+
     if (!connectivityService.isOnline) {
       throw Exception("Offline: unable to perform POST to $endpoint");
     }
@@ -161,7 +185,7 @@ class V3ApiService {
       final uri = Uri.parse("${AppConfig.baseUrl}$endpoint");
       _log("[DEBUG] Starting POST request to: $uri");
 
-      final headers = _authHeaders;
+      final headers = requireAuth ? _authHeaders : _headers;
       _log(
         "[DEBUG] Headers built, Authorization header included: ${headers.containsKey('Authorization')}",
       );
@@ -190,10 +214,22 @@ class V3ApiService {
   Future<dynamic> putRequest(
     String endpoint, {
     Map<String, dynamic>? body,
+    bool requireAuth = true,
   }) async {
+    if (requireAuth && !authService.isAuthenticated) {
+      _log("[DEBUG] Auth missing before PUT request. Attempting restore...");
+      final restored = await authService.ensureAuthenticated();
+      if (!restored) {
+        _log(
+          "✗ AUTHENTICATION REQUIRED: Aborting PUT request to $endpoint because user is not authenticated.",
+        );
+        throw AuthenticationException("User is not authenticated");
+      }
+    }
+
     try {
       final uri = Uri.parse("${AppConfig.baseUrl}$endpoint");
-      final headers = _authHeaders;
+      final headers = requireAuth ? _authHeaders : _headers;
 
       _log("PUT REQUEST: $uri");
       _log(
@@ -214,10 +250,24 @@ class V3ApiService {
     }
   }
 
-  Future<dynamic> deleteRequest(String endpoint) async {
+  Future<dynamic> deleteRequest(
+    String endpoint, {
+    bool requireAuth = true,
+  }) async {
+    if (requireAuth && !authService.isAuthenticated) {
+      _log("[DEBUG] Auth missing before DELETE request. Attempting restore...");
+      final restored = await authService.ensureAuthenticated();
+      if (!restored) {
+        _log(
+          "✗ AUTHENTICATION REQUIRED: Aborting DELETE request to $endpoint because user is not authenticated.",
+        );
+        throw AuthenticationException("User is not authenticated");
+      }
+    }
+
     try {
       final uri = Uri.parse("${AppConfig.baseUrl}$endpoint");
-      final headers = _authHeaders;
+      final headers = requireAuth ? _authHeaders : _headers;
 
       _log("DELETE REQUEST: $uri");
       _log(
@@ -565,16 +615,18 @@ class V3ApiService {
 
   Future<List<String>> getSymbols() async {
     final json = await getRequest(
-      "${AppConfig.baseUrl}${AppConfig.v3Symbols}",
+      AppConfig.v3Symbols,
       cacheTtl: 3600, // 1 hour
+      requireAuth: false,
     );
     return json is List ? json.cast<String>() : [];
   }
 
   Future<List<String>> getTimeframes() async {
     final json = await getRequest(
-      "${AppConfig.baseUrl}${AppConfig.v3Timeframes}",
+      AppConfig.v3Timeframes,
       cacheTtl: 3600, // 1 hour
+      requireAuth: false,
     );
     return json is List ? json.cast<String>() : [];
   }
