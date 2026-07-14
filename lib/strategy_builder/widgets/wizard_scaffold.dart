@@ -11,7 +11,10 @@ import 'package:provider/provider.dart';
 import '../state/strategy_builder_provider.dart';
 
 class WizardScaffold extends StatefulWidget {
-  const WizardScaffold({super.key});
+  final String? strategyId;
+  final bool isEdit;
+
+  const WizardScaffold({super.key, this.strategyId, this.isEdit = false});
 
   @override
   State<WizardScaffold> createState() => _WizardScaffoldState();
@@ -65,24 +68,34 @@ class _WizardScaffoldState extends State<WizardScaffold>
 
   Future<void> _finish() async {
     final builder = context.read<StrategyBuilderProvider>();
-
     final strategies = context.read<StrategiesProvider>();
 
-    final success = await strategies.createStrategyFromPayload(
-      builder.toPayload(),
-    );
+    bool success;
+
+    if (widget.isEdit) {
+      success = await strategies.updateStrategyFromPayload(
+        widget.strategyId!,
+        builder.toPayload(),
+      );
+    } else {
+      success = await strategies.createStrategyFromPayload(builder.toPayload());
+    }
 
     if (!mounted) return;
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Strategy created successfully"),
+        SnackBar(
+          content: Text(
+            widget.isEdit
+                ? "Strategy updated successfully"
+                : "Strategy created successfully",
+          ),
           backgroundColor: Colors.green,
         ),
       );
 
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -109,11 +122,11 @@ class _WizardScaffoldState extends State<WizardScaffold>
 
       title: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Text(
-              "New Strategy Builder",
+              widget.isEdit ? "Edit Strategy" : "New Strategy Builder",
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -138,9 +151,7 @@ class _WizardScaffoldState extends State<WizardScaffold>
                   size: 16,
                   color: Color(0xFF3B82F6),
                 ),
-
                 SizedBox(width: 4),
-
                 Text(
                   "Scalping",
                   style: TextStyle(
@@ -251,7 +262,13 @@ class _WizardScaffoldState extends State<WizardScaffold>
                             ? Icons.save
                             : Icons.arrow_forward_rounded,
                       ),
-                      label: Text(_currentStep == 3 ? "Save Strategy" : "Next"),
+                      label: Text(
+                        _currentStep == 3
+                            ? (widget.isEdit
+                                  ? "Update Strategy"
+                                  : "Save Strategy")
+                            : "Next",
+                      ),
                       style: ElevatedButton.styleFrom(
                         elevation: 0,
                         backgroundColor: const Color(0xFF3B82F6),

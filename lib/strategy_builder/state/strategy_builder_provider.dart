@@ -1,17 +1,45 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+
 import '../models/strategy_models.dart';
-import '../../services/api_service.dart';
 
 class StrategyBuilderProvider extends ChangeNotifier {
   StrategyModel _model;
 
-  final _uuid = const Uuid();
+  final Uuid _uuid = const Uuid();
+
+  /// Null = Create Mode
+  /// Non-null = Edit Mode
+  String? _editingStrategyId;
 
   StrategyBuilderProvider({StrategyModel? initialStrategy})
     : _model = initialStrategy ?? const StrategyModel();
 
   StrategyModel get model => _model;
+
+  String? get editingStrategyId => _editingStrategyId;
+
+  bool get isEdit => _editingStrategyId != null;
+
+  void loadTemplate(StrategyModel template) {
+    _model = template;
+    notifyListeners();
+  }
+
+  void loadForEdit({
+    required String strategyId,
+    required StrategyModel strategy,
+  }) {
+    _editingStrategyId = strategyId;
+    _model = strategy;
+    notifyListeners();
+  }
+
+  void clear() {
+    _editingStrategyId = null;
+    _model = const StrategyModel();
+    notifyListeners();
+  }
 
   void updateBasic({
     String? name,
@@ -35,31 +63,41 @@ class StrategyBuilderProvider extends ChangeNotifier {
       liveMode: liveMode,
       enabled: enabled,
     );
+
     notifyListeners();
   }
 
   void addCondition({required bool buySide, required Indicator indicator}) {
-    final c = Condition(id: _uuid.v4(), indicator: indicator);
+    final condition = Condition(id: _uuid.v4(), indicator: indicator);
+
     if (buySide) {
-      _model = _model.copyWith(buyConditions: [..._model.buyConditions, c]);
+      _model = _model.copyWith(
+        buyConditions: [..._model.buyConditions, condition],
+      );
     } else {
-      _model = _model.copyWith(sellConditions: [..._model.sellConditions, c]);
+      _model = _model.copyWith(
+        sellConditions: [..._model.sellConditions, condition],
+      );
     }
+
     notifyListeners();
   }
 
   void updateCondition({required bool buySide, required Condition condition}) {
     if (buySide) {
-      final list = _model.buyConditions
+      final updated = _model.buyConditions
           .map((c) => c.id == condition.id ? condition : c)
           .toList();
-      _model = _model.copyWith(buyConditions: list);
+
+      _model = _model.copyWith(buyConditions: updated);
     } else {
-      final list = _model.sellConditions
+      final updated = _model.sellConditions
           .map((c) => c.id == condition.id ? condition : c)
           .toList();
-      _model = _model.copyWith(sellConditions: list);
+
+      _model = _model.copyWith(sellConditions: updated);
     }
+
     notifyListeners();
   }
 
@@ -77,6 +115,7 @@ class StrategyBuilderProvider extends ChangeNotifier {
             .toList(),
       );
     }
+
     notifyListeners();
   }
 
@@ -86,44 +125,48 @@ class StrategyBuilderProvider extends ChangeNotifier {
     required int newIndex,
   }) {
     final list = [...(buySide ? _model.buyConditions : _model.sellConditions)];
+
     final item = list.removeAt(oldIndex);
     list.insert(newIndex, item);
+
     if (buySide) {
       _model = _model.copyWith(buyConditions: list);
     } else {
       _model = _model.copyWith(sellConditions: list);
     }
+
     notifyListeners();
   }
 
   void updateRisk(RiskSettings risk) {
     _model = _model.copyWith(riskSettings: risk);
-    notifyListeners();
-  }
 
-  void loadTemplate(StrategyModel template) {
-    _model = template;
     notifyListeners();
   }
 
   Map<String, dynamic> toPayload() {
     return {
-      "strategy_name": model.name,
+      "strategy_name": _model.name,
       "version": 1,
-      "enabled": model.enabled,
-      "paper_mode": model.paperMode,
-      "live_mode": model.liveMode,
+      "enabled": _model.enabled,
+      "paper_mode": _model.paperMode,
+      "live_mode": _model.liveMode,
       "priority": 1,
-      "symbol": model.market,
-      "timeframe": model.timeframe,
-      "risk_percent": model.riskSettings.riskPerTrade,
-      "tp": model.riskSettings.rr,
+      "symbol": _model.market,
+      "timeframe": _model.timeframe,
+
+      "risk_percent": _model.riskSettings.riskPerTrade,
+      "tp": _model.riskSettings.rr,
       "sl": 1,
 
       "indicator_parameters": {
-        "buy_conditions": model.buyConditions.map((e) => e.toJson()).toList(),
+        "buy_conditions": _model.buyConditions
+            .map((condition) => condition.toJson())
+            .toList(),
 
-        "sell_conditions": model.sellConditions.map((e) => e.toJson()).toList(),
+        "sell_conditions": _model.sellConditions
+            .map((condition) => condition.toJson())
+            .toList(),
       },
     };
   }
