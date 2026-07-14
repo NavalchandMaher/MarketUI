@@ -117,7 +117,7 @@ class StrategiesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _api.postRequest('/v3/strategies', body: payload);
+      final response = await _api.createStrategy(payload);
 
       final newStrategy = StrategyModel.fromJson(response);
       _strategies.add(newStrategy);
@@ -183,10 +183,7 @@ class StrategiesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _api.putRequest(
-        '/v3/strategies/$id',
-        body: payload,
-      );
+      final response = await _api.updateStrategy(id, payload);
 
       final updated = StrategyModel.fromJson(response);
       final index = _strategies.indexWhere((s) => s.id == id);
@@ -209,8 +206,11 @@ class StrategiesProvider extends ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>> getStrategyPayload(String id) async {
-    return await _api.getStrategy(id);
+  Future<Map<String, dynamic>> getStrategyPayload(
+    String id, {
+    bool forceRefresh = false,
+  }) async {
+    return await _api.getStrategy(id, forceRefresh: forceRefresh);
   }
 
   // ============================================================
@@ -223,7 +223,7 @@ class StrategiesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _api.deleteRequest('/v3/strategies/$id');
+      await _api.deleteStrategy(id);
 
       _strategies.removeWhere((s) => s.id == id);
       if (_selectedStrategy?.id == id) {

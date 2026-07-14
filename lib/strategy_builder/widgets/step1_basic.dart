@@ -27,8 +27,18 @@ class _Step1BasicState extends State<Step1Basic> {
     final provider = Provider.of<StrategyBuilderProvider>(context);
     final model = provider.model;
 
-    _nameCtl.text = model.name;
-    _descCtl.text = model.description;
+    if (_nameCtl.text != model.name) {
+      _nameCtl.text = model.name;
+      _nameCtl.selection = TextSelection.collapsed(
+        offset: _nameCtl.text.length,
+      );
+    }
+    if (_descCtl.text != model.description) {
+      _descCtl.text = model.description;
+      _descCtl.selection = TextSelection.collapsed(
+        offset: _descCtl.text.length,
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(16.0),

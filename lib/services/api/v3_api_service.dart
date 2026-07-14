@@ -390,10 +390,14 @@ class V3ApiService {
     return json is List ? json : [];
   }
 
-  Future<Map<String, dynamic>> getStrategy(String strategyId) async {
+  Future<Map<String, dynamic>> getStrategy(
+    String strategyId, {
+    bool forceRefresh = false,
+  }) async {
     final json = await getRequest(
       "${AppConfig.v3Strategies}/$strategyId",
       cacheTtl: 300,
+      forceRefresh: forceRefresh,
     );
     return json;
   }

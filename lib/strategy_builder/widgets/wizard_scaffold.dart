@@ -84,6 +84,9 @@ class _WizardScaffoldState extends State<WizardScaffold>
     if (!mounted) return;
 
     if (success) {
+      if (widget.isEdit) {
+        await strategies.loadStrategies(forceRefresh: true);
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

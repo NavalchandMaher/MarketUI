@@ -48,7 +48,7 @@ class _StrategyBuilderScreenState extends State<StrategyBuilderScreen> {
     try {
       final payload = await context
           .read<StrategiesProvider>()
-          .getStrategyPayload(widget.strategy!.id);
+          .getStrategyPayload(widget.strategy!.id, forceRefresh: true);
       final strategyModel = builder.StrategyModel.fromApiPayload(payload);
       _provider.loadForEdit(
         strategyId: widget.strategy!.id,

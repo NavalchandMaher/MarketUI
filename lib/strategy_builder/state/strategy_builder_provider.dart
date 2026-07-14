@@ -147,6 +147,7 @@ class StrategyBuilderProvider extends ChangeNotifier {
   Map<String, dynamic> toPayload() {
     return {
       "strategy_name": _model.name,
+      "description": _model.description,
       "version": 1,
       "enabled": _model.enabled,
       "paper_mode": _model.paperMode,
