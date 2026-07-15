@@ -80,26 +80,44 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
                     subtitle: Text(
                       strategy.isDefault
                           ? 'Default · v${strategy.version} - EMA ${strategy.emaFast}/${strategy.emaSlow}'
+                          : strategy.strategyType.toLowerCase() == 'system'
+                          ? 'System · v${strategy.version} - EMA ${strategy.emaFast}/${strategy.emaSlow}'
                           : 'v${strategy.version} - EMA ${strategy.emaFast}/${strategy.emaSlow}',
                     ),
                     trailing: PopupMenuButton(
                       itemBuilder: (context) {
-                        final items = <PopupMenuEntry<String>>[
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Text('Edit'),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Text('Delete'),
-                          ),
-                        ];
-                        if (!strategy.isDefault) {
-                          items.insert(
-                            1,
+                        final isSystem =
+                            strategy.strategyType.toLowerCase() == 'system';
+                        final items = <PopupMenuEntry<String>>[];
+
+                        if (isSystem) {
+                          if (!strategy.isDefault) {
+                            items.add(
+                              const PopupMenuItem(
+                                value: 'set_default',
+                                child: Text('Set as default'),
+                              ),
+                            );
+                          }
+                        } else {
+                          items.add(
                             const PopupMenuItem(
-                              value: 'set_default',
-                              child: Text('Set as default'),
+                              value: 'edit',
+                              child: Text('Edit'),
+                            ),
+                          );
+                          if (!strategy.isDefault) {
+                            items.add(
+                              const PopupMenuItem(
+                                value: 'set_default',
+                                child: Text('Set as default'),
+                              ),
+                            );
+                          }
+                          items.add(
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Text('Delete'),
                             ),
                           );
                         }

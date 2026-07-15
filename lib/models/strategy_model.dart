@@ -10,6 +10,8 @@ class StrategyModel {
 
   final String name;
 
+  final String strategyType;
+
   final int version;
 
   final bool isDefault;
@@ -33,6 +35,7 @@ class StrategyModel {
   const StrategyModel({
     required this.id,
     required this.name,
+    required this.strategyType,
     required this.version,
     required this.isDefault,
     required this.buyThreshold,
@@ -49,6 +52,7 @@ class StrategyModel {
     return const StrategyModel(
       id: "",
       name: "",
+      strategyType: "",
       version: 1,
       isDefault: false,
       buyThreshold: 3,
@@ -71,6 +75,8 @@ class StrategyModel {
       name: json["strategy_name"] ?? json["name"] ?? "",
 
       version: json["version"] ?? 1,
+
+      strategyType: json["strategy_type"] ?? "",
 
       isDefault: json["is_default"] ?? false,
 
@@ -102,6 +108,7 @@ class StrategyModel {
       "id": id,
       "name": name,
       "version": version,
+      "strategy_type": strategyType,
       "buy_threshold": buyThreshold,
       "sell_threshold": sellThreshold,
       "is_default": isDefault,
@@ -119,6 +126,7 @@ class StrategyModel {
   StrategyModel copyWith({
     String? id,
     String? name,
+    String? strategyType,
     int? version,
     bool? isDefault,
     int? buyThreshold,
@@ -133,6 +141,7 @@ class StrategyModel {
     return StrategyModel(
       id: id ?? this.id,
       name: name ?? this.name,
+      strategyType: strategyType ?? this.strategyType,
       version: version ?? this.version,
       isDefault: isDefault ?? this.isDefault,
       buyThreshold: buyThreshold ?? this.buyThreshold,
