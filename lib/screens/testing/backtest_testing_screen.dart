@@ -18,6 +18,7 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
   late TextEditingController _symbolController;
   late TextEditingController _daysController;
   String _selectedTimeframe = "5m";
+  String? _selectedStrategyName;
 
   final List<String> _timeframes = ["1m", "5m", "15m", "1h", "4h", "1d"];
 
@@ -28,9 +29,10 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
     _symbolController = TextEditingController(text: "BTCUSDT");
     _daysController = TextEditingController(text: "30");
 
-    // Load history on first open
+    // Load saved strategies and history on first open
     final provider = context.read<BacktestProvider>();
     Future.microtask(() {
+      provider.loadStrategies();
       provider.loadBacktestHistory();
     });
   }
@@ -45,6 +47,7 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
 
   void _runBacktest() {
     final symbol = _symbolController.text.trim();
+    final strategyName = _selectedStrategyName?.trim() ?? '';
     final days = int.tryParse(_daysController.text) ?? 30;
     final endDate = DateTime.now();
     final startDate = endDate.subtract(Duration(days: days));
@@ -56,8 +59,15 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
       return;
     }
 
+    if (strategyName.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please select a strategy")));
+      return;
+    }
+
     context.read<BacktestProvider>().runBacktest(
-      strategyName: 'Backtest Test',
+      strategyName: strategyName,
       symbol: symbol,
       timeframe: _selectedTimeframe,
       startDate: startDate,
@@ -125,6 +135,55 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
             ),
           ),
           const SizedBox(height: 24),
+
+          // Strategy Selector
+          const Text("Select Strategy", style: TextStyle(color: Colors.grey)),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _selectedStrategyName,
+            isExpanded: true,
+            decoration: InputDecoration(
+              hintText: "Choose a saved strategy",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.all(12),
+            ),
+            items: provider.strategies.map((strategy) {
+              final strategyName =
+                  (strategy['strategy_name'] ?? strategy['name'] ?? '')
+                      .toString();
+              return DropdownMenuItem<String>(
+                value: strategyName,
+                child: Text(strategyName),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedStrategyName = value;
+                if (value == null) return;
+
+                final selectedStrategy = provider.strategies.firstWhere(
+                  (strategy) =>
+                      (strategy['strategy_name'] ?? strategy['name'] ?? '')
+                          .toString() ==
+                      value,
+                  orElse: () => <String, dynamic>{},
+                );
+
+                if (selectedStrategy is Map<String, dynamic>) {
+                  final symbol = (selectedStrategy['symbol'] ?? 'BTCUSDT')
+                      .toString();
+                  final timeframe = (selectedStrategy['timeframe'] ?? '5m')
+                      .toString();
+                  _symbolController.text = symbol;
+                  _selectedTimeframe = timeframe;
+                }
+              });
+            },
+          ),
+          const SizedBox(height: 20),
 
           // Symbol Input
           const Text("Trading Symbol", style: TextStyle(color: Colors.grey)),

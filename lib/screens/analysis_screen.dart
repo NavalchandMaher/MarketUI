@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/analysis_model.dart';
-import '../services/api_service.dart';
+import '../services/api/v3_api_service.dart';
+import '../service_locator.dart';
 import '../utils/constants.dart';
 import '../utils/responsive.dart';
 import '../widgets/chart_card.dart';
@@ -16,7 +17,8 @@ class AnalysisScreen extends StatefulWidget {
 }
 
 class _AnalysisScreenState extends State<AnalysisScreen> {
-  final ApiService _api = ApiService.instance;
+  // Use authenticated V3 API service (ensures Authorization header present)
+  final V3ApiService _api = getIt<V3ApiService>();
 
   String _selectedSymbol = AppConstants.defaultSymbol;
   String _selectedTimeframe = AppConstants.defaultTimeframe;

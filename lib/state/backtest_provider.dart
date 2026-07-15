@@ -11,6 +11,7 @@ class BacktestProvider extends ChangeNotifier {
 
   Map<String, dynamic>? _currentBacktest;
   List<dynamic> _backtestHistory = [];
+  List<dynamic> _strategies = [];
   bool _isRunning = false;
   bool _isLoading = false;
   String? _errorMessage;
@@ -31,6 +32,7 @@ class BacktestProvider extends ChangeNotifier {
 
   Map<String, dynamic>? get currentBacktest => _currentBacktest;
   List<dynamic> get backtestHistory => _backtestHistory;
+  List<dynamic> get strategies => _strategies;
   bool get isRunning => _isRunning;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -125,6 +127,17 @@ class BacktestProvider extends ChangeNotifier {
   // ============================================================
   // Load Backtest History
   // ============================================================
+
+  Future<void> loadStrategies({bool forceRefresh = false}) async {
+    try {
+      final response = await _api.getStrategies(forceRefresh: forceRefresh);
+      _strategies = response is List ? response : [];
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      print('[BACKTEST] Error loading strategies: $e');
+    }
+  }
 
   Future<void> loadBacktestHistory({bool forceRefresh = false}) async {
     _isLoading = true;
@@ -233,6 +246,7 @@ class BacktestProvider extends ChangeNotifier {
   void reset() {
     _currentBacktest = null;
     _backtestHistory = [];
+    _strategies = [];
     _isRunning = false;
     _isLoading = false;
     _errorMessage = null;
