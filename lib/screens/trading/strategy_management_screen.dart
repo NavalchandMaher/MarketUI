@@ -78,16 +78,33 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
                     leading: const Icon(Icons.show_chart),
                     title: Text(strategy.name),
                     subtitle: Text(
-                      'v${strategy.version} - EMA ${strategy.emaFast}/${strategy.emaSlow}',
+                      strategy.isDefault
+                          ? 'Default · v${strategy.version} - EMA ${strategy.emaFast}/${strategy.emaSlow}'
+                          : 'v${strategy.version} - EMA ${strategy.emaFast}/${strategy.emaSlow}',
                     ),
                     trailing: PopupMenuButton(
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Text('Delete'),
-                        ),
-                      ],
+                      itemBuilder: (context) {
+                        final items = <PopupMenuEntry<String>>[
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Edit'),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Delete'),
+                          ),
+                        ];
+                        if (!strategy.isDefault) {
+                          items.insert(
+                            1,
+                            const PopupMenuItem(
+                              value: 'set_default',
+                              child: Text('Set as default'),
+                            ),
+                          );
+                        }
+                        return items;
+                      },
                       onSelected: (value) async {
                         if (value == 'edit') {
                           _showStrategyForm(context, strategy: strategy);
@@ -97,6 +114,21 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
                             strategy.name,
                             strategy.id,
                           );
+                        } else if (value == 'set_default') {
+                          final success = await provider.setDefaultStrategy(
+                            strategy.id,
+                          );
+                          if (!success && mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  provider.errorMessage ??
+                                      'Unable to set default strategy.',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         }
                       },
                     ),

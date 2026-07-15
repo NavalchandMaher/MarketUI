@@ -171,6 +171,16 @@ class _Step1BasicState extends State<Step1Basic> {
               ],
             ),
             SizedBox(height: sectionSpacing),
+            CheckboxListTile(
+              title: const Text('Set as default strategy'),
+              value: model.isDefault,
+              onChanged: (value) =>
+                  provider.updateBasic(isDefault: value ?? false),
+              controlAffinity: ListTileControlAffinity.leading,
+              activeColor: const Color(0xFF3B82F6),
+              contentPadding: EdgeInsets.zero,
+            ),
+            SizedBox(height: sectionSpacing),
             const Text(
               'Templates',
               style: TextStyle(fontWeight: FontWeight.w600),

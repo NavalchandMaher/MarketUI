@@ -12,6 +12,8 @@ class StrategyModel {
 
   final int version;
 
+  final bool isDefault;
+
   final int buyThreshold;
 
   final int sellThreshold;
@@ -32,6 +34,7 @@ class StrategyModel {
     required this.id,
     required this.name,
     required this.version,
+    required this.isDefault,
     required this.buyThreshold,
     required this.sellThreshold,
     required this.tpPercent,
@@ -47,6 +50,7 @@ class StrategyModel {
       id: "",
       name: "",
       version: 1,
+      isDefault: false,
       buyThreshold: 3,
       sellThreshold: -3,
       tpPercent: 2,
@@ -67,6 +71,8 @@ class StrategyModel {
       name: json["strategy_name"] ?? json["name"] ?? "",
 
       version: json["version"] ?? 1,
+
+      isDefault: json["is_default"] ?? false,
 
       buyThreshold:
           indicatorParams["buy_threshold"] ?? json["buy_threshold"] ?? 3,
@@ -98,6 +104,7 @@ class StrategyModel {
       "version": version,
       "buy_threshold": buyThreshold,
       "sell_threshold": sellThreshold,
+      "is_default": isDefault,
       "tp_percent": tpPercent,
       "sl_percent": slPercent,
       "ema_fast": emaFast,
@@ -113,6 +120,7 @@ class StrategyModel {
     String? id,
     String? name,
     int? version,
+    bool? isDefault,
     int? buyThreshold,
     int? sellThreshold,
     double? tpPercent,
@@ -126,6 +134,7 @@ class StrategyModel {
       id: id ?? this.id,
       name: name ?? this.name,
       version: version ?? this.version,
+      isDefault: isDefault ?? this.isDefault,
       buyThreshold: buyThreshold ?? this.buyThreshold,
       sellThreshold: sellThreshold ?? this.sellThreshold,
       tpPercent: tpPercent ?? this.tpPercent,

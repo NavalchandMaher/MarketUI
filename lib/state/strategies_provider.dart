@@ -206,6 +206,38 @@ class StrategiesProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> setDefaultStrategy(String id) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _api.updateStrategy(id, {"is_default": true});
+
+      final updated = StrategyModel.fromJson(response);
+      _strategies = _strategies
+          .map(
+            (strategy) => strategy.id == id
+                ? updated
+                : strategy.copyWith(isDefault: false),
+          )
+          .toList();
+      if (_selectedStrategy?.id == id) {
+        _selectedStrategy = updated;
+      }
+      _errorMessage = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      print('[STRATEGIES] Error setting default strategy: $e');
+      notifyListeners();
+      return false;
+    } finally {
+      _isLoading = false;
+    }
+  }
+
   Future<Map<String, dynamic>> getStrategyPayload(
     String id, {
     bool forceRefresh = false,

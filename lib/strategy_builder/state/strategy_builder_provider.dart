@@ -51,6 +51,7 @@ class StrategyBuilderProvider extends ChangeNotifier {
     bool? paperMode,
     bool? liveMode,
     bool? enabled,
+    bool? isDefault,
   }) {
     _model = _model.copyWith(
       name: name,
@@ -62,6 +63,7 @@ class StrategyBuilderProvider extends ChangeNotifier {
       paperMode: paperMode,
       liveMode: liveMode,
       enabled: enabled,
+      isDefault: isDefault,
     );
 
     notifyListeners();
@@ -159,6 +161,7 @@ class StrategyBuilderProvider extends ChangeNotifier {
       "risk_percent": _model.riskSettings.riskPerTrade,
       "tp": _model.riskSettings.rr,
       "sl": 1,
+      "is_default": _model.isDefault,
 
       "indicator_parameters": {
         "buy_conditions": _model.buyConditions

@@ -213,6 +213,7 @@ class StrategyModel {
   final bool paperMode;
   final bool liveMode;
   final bool enabled;
+  final bool isDefault;
 
   final List<Condition> buyConditions;
   final List<Condition> sellConditions;
@@ -230,6 +231,7 @@ class StrategyModel {
     this.paperMode = true,
     this.liveMode = false,
     this.enabled = true,
+    this.isDefault = false,
     this.buyConditions = const [],
     this.sellConditions = const [],
     this.riskSettings = const RiskSettings(),
@@ -246,6 +248,7 @@ class StrategyModel {
     bool? paperMode,
     bool? liveMode,
     bool? enabled,
+    bool? isDefault,
     List<Condition>? buyConditions,
     List<Condition>? sellConditions,
     RiskSettings? riskSettings,
@@ -261,6 +264,7 @@ class StrategyModel {
       paperMode: paperMode ?? this.paperMode,
       liveMode: liveMode ?? this.liveMode,
       enabled: enabled ?? this.enabled,
+      isDefault: isDefault ?? this.isDefault,
       buyConditions: buyConditions ?? this.buyConditions,
       sellConditions: sellConditions ?? this.sellConditions,
       riskSettings: riskSettings ?? this.riskSettings,
@@ -279,6 +283,7 @@ class StrategyModel {
       "paperMode": paperMode,
       "liveMode": liveMode,
       "enabled": enabled,
+      "is_default": isDefault,
       "buyConditions": buyConditions.map((e) => e.toJson()).toList(),
       "sellConditions": sellConditions.map((e) => e.toJson()).toList(),
       "riskSettings": riskSettings.toJson(),
@@ -298,6 +303,7 @@ class StrategyModel {
       paperMode: true,
       liveMode: false,
       enabled: true,
+      isDefault: false,
       buyConditions: const [],
       sellConditions: const [],
       riskSettings: RiskSettings(riskPerTrade: 1, rr: legacyModel.tpPercent),
@@ -318,6 +324,7 @@ class StrategyModel {
       paperMode: json["paper_mode"] ?? true,
       liveMode: json["live_mode"] ?? false,
       enabled: json["enabled"] ?? true,
+      isDefault: json["is_default"] ?? false,
 
       buyConditions:
           (indicatorParameters["buy_conditions"] as List<dynamic>? ?? [])
