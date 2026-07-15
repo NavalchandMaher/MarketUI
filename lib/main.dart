@@ -15,7 +15,6 @@ import 'state/settings_provider.dart';
 import 'state/strategies_provider.dart';
 import 'state/paper_trading_provider.dart';
 import 'state/reports_provider.dart';
-import 'state/backtesting_provider.dart';
 import 'state/learning_logs_provider.dart';
 import 'state/backtest_provider.dart';
 import 'state/scheduler_provider.dart';
@@ -48,9 +47,6 @@ void main() async {
         ),
         ChangeNotifierProvider<ReportsProvider>(
           create: (_) => getIt<ReportsProvider>(),
-        ),
-        ChangeNotifierProvider<BacktestingProvider>(
-          create: (_) => getIt<BacktestingProvider>(),
         ),
         ChangeNotifierProvider<LearningLogsProvider>(
           create: (_) => getIt<LearningLogsProvider>(),
