@@ -10,7 +10,9 @@ import '../../state/strategies_provider.dart';
 /// Strategy Management Screen
 /// ===============================================================
 class StrategyManagementScreen extends StatefulWidget {
-  const StrategyManagementScreen({super.key});
+  final bool systemOnly;
+
+  const StrategyManagementScreen({super.key, this.systemOnly = false});
 
   @override
   State<StrategyManagementScreen> createState() =>
@@ -41,7 +43,13 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (provider.strategies.isEmpty) {
+          final strategies = widget.systemOnly
+              ? provider.strategies
+                    .where((s) => s.strategyType.toLowerCase() == 'system')
+                    .toList()
+              : provider.strategies;
+
+          if (strategies.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -67,9 +75,9 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
           return RefreshIndicator(
             onRefresh: () => provider.loadStrategies(forceRefresh: true),
             child: ListView.builder(
-              itemCount: provider.strategies.length,
+              itemCount: strategies.length,
               itemBuilder: (context, index) {
-                final strategy = provider.strategies[index];
+                final strategy = strategies[index];
                 return Card(
                   margin: const EdgeInsets.symmetric(
                     horizontal: 8,

@@ -164,7 +164,8 @@ class StrategyBuilderProvider extends ChangeNotifier {
       "tp": _model.riskSettings.rr,
       "sl": 1,
       "is_default": _model.isDefault,
-      "published": _model.published,
+      if (_model.strategyType.toLowerCase() == 'system')
+        "published": _model.published,
 
       "indicator_parameters": {
         "buy_conditions": _model.buyConditions

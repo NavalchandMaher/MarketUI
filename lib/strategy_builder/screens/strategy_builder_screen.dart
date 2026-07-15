@@ -9,8 +9,13 @@ import '../models/strategy_models.dart' as builder;
 
 class StrategyBuilderScreen extends StatefulWidget {
   final legacy.StrategyModel? strategy;
+  final String? defaultStrategyType;
 
-  const StrategyBuilderScreen({super.key, this.strategy});
+  const StrategyBuilderScreen({
+    super.key,
+    this.strategy,
+    this.defaultStrategyType,
+  });
 
   @override
   State<StrategyBuilderScreen> createState() => _StrategyBuilderScreenState();
@@ -26,7 +31,9 @@ class _StrategyBuilderScreenState extends State<StrategyBuilderScreen> {
 
     final builderModel = widget.strategy != null
         ? builder.StrategyModel.fromLegacy(widget.strategy!)
-        : null;
+        : builder.StrategyModel(
+            strategyType: widget.defaultStrategyType ?? 'Scalping',
+          );
 
     _provider = StrategyBuilderProvider(initialStrategy: builderModel);
 

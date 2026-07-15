@@ -17,7 +17,10 @@ class AppConfig {
   //==============================================================
 
   /// Android Emulator
-  static const String androidEmulator = "http://localhost:10000";
+  // Use emulator loopback address so Android emulators can reach host
+  // (10.0.2.2 for Android Emulator / AVD). If using a physical device,
+  // set `localNetwork` to your machine IP and toggle `baseUrl` accordingly.
+  static const String androidEmulator = "http://10.0.2.2:10000";
 
   /// iOS Simulator
   static const String iosSimulator = "http://localhost:10000";

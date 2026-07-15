@@ -17,6 +17,7 @@ import 'learning/learning_logs_screen.dart';
 import 'testing/backtest_testing_screen.dart';
 import 'scheduler_dashboard_screen.dart';
 import 'admin/admin_panel_screen.dart';
+import 'admin/admin_home_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -68,6 +69,11 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     final authState = context.watch<AuthState>();
+
+    // If the logged-in user is an admin, show the admin home UI only
+    if (authState.userRole.toLowerCase() == 'admin') {
+      return const AdminHomeScreen();
+    }
 
     return Scaffold(
       appBar: AppBar(
