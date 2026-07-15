@@ -224,44 +224,51 @@ class BacktestResult {
   });
 
   factory BacktestResult.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic> extract(Map<String, dynamic> source) {
+      final flattened = <String, dynamic>{};
+      void merge(Map<String, dynamic> value) {
+        flattened.addAll(value);
+        for (final nestedKey in [
+          'result',
+          'backtest_response',
+          'report',
+          'metrics',
+          'stats',
+          'summary',
+          'performance',
+        ]) {
+          if (value[nestedKey] is Map<String, dynamic>) {
+            merge(Map<String, dynamic>.from(value[nestedKey]));
+          }
+        }
+      }
+
+      merge(source);
+      return flattened;
+    }
+
+    final raw = extract(json);
     return BacktestResult(
-      totalTrades: json["total_trades"] ?? 0,
-
-      wins: json["wins"] ?? 0,
-
-      losses: json["losses"] ?? 0,
-
-      winRate: (json["win_rate"] ?? 0).toDouble(),
-
-      grossProfit: (json["gross_profit"] ?? 0).toDouble(),
-
-      grossLoss: (json["gross_loss"] ?? 0).toDouble(),
-
-      netProfit: (json["net_profit"] ?? 0).toDouble(),
-
-      profitFactor: (json["profit_factor"] ?? 0).toDouble(),
-
-      drawdown: (json["drawdown"] ?? 0).toDouble(),
-
-      sharpeRatio: (json["sharpe_ratio"] ?? 0).toDouble(),
-
-      expectancy: (json["expectancy"] ?? 0).toDouble(),
-
-      strategyName: json["strategy_name"] ?? "",
-
-      strategyVersion: json["strategy_version"] ?? 1,
-
-      symbol: json["symbol"] ?? "",
-
-      timeframe: json["timeframe"] ?? "",
-
-      days: json["days"] ?? 0,
-
-      createdAt: json["created_at"] != null
-          ? DateTime.tryParse(json["created_at"])
+      totalTrades: raw["total_trades"] ?? 0,
+      wins: raw["wins"] ?? 0,
+      losses: raw["losses"] ?? 0,
+      winRate: (raw["win_rate"] ?? 0).toDouble(),
+      grossProfit: (raw["gross_profit"] ?? 0).toDouble(),
+      grossLoss: (raw["gross_loss"] ?? 0).toDouble(),
+      netProfit: (raw["net_profit"] ?? 0).toDouble(),
+      profitFactor: (raw["profit_factor"] ?? 0).toDouble(),
+      drawdown: (raw["drawdown"] ?? 0).toDouble(),
+      sharpeRatio: (raw["sharpe_ratio"] ?? 0).toDouble(),
+      expectancy: (raw["expectancy"] ?? 0).toDouble(),
+      strategyName: raw["strategy_name"] ?? "",
+      strategyVersion: raw["strategy_version"] ?? 1,
+      symbol: raw["symbol"] ?? "",
+      timeframe: raw["timeframe"] ?? "",
+      days: raw["days"] ?? 0,
+      createdAt: raw["created_at"] != null
+          ? DateTime.tryParse(raw["created_at"])
           : null,
-
-      id: json["_id"] ?? "",
+      id: raw["_id"] ?? raw["id"] ?? "",
     );
   }
 

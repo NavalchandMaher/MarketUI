@@ -385,14 +385,31 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
       return <String, dynamic>{};
     }
 
-    final raw = Map<String, dynamic>.from(entry);
-    if (raw['result'] is Map) {
-      final result = Map<String, dynamic>.from(raw['result']);
-      result.addAll(raw);
-      return result;
+    final flattened = <String, dynamic>{};
+    void merge(dynamic source) {
+      if (source is! Map) {
+        return;
+      }
+
+      final map = Map<String, dynamic>.from(source);
+      flattened.addAll(map);
+      for (final nestedKey in [
+        'result',
+        'backtest_response',
+        'report',
+        'metrics',
+        'stats',
+        'summary',
+        'performance',
+      ]) {
+        if (map[nestedKey] is Map) {
+          merge(map[nestedKey]);
+        }
+      }
     }
 
-    return raw;
+    merge(entry);
+    return flattened;
   }
 
   List<dynamic> _sortedHistoryItems(List<dynamic> items) {
@@ -624,6 +641,24 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
                         children: [
                           Expanded(
                             child: _buildResultCard(
+                              'Wins',
+                              _metricValue(data, 'wins'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildResultCard(
+                              'Losses',
+                              _metricValue(data, 'losses'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildResultCard(
                               'Net Profit',
                               _metricValue(data, 'net_profit'),
                             ),
@@ -802,29 +837,53 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
   }
 
   // Try multiple locations for a metric: result map, top-level, nested 'metrics' or 'stats'
+  dynamic _findMetricValue(dynamic source, String key) {
+    if (source is! Map) {
+      return null;
+    }
+
+    final map = Map<String, dynamic>.from(source);
+    if (map.containsKey(key) && map[key] != null) {
+      return map[key];
+    }
+
+    for (final nestedKey in [
+      'result',
+      'backtest_response',
+      'report',
+      'metrics',
+      'stats',
+      'summary',
+      'performance',
+    ]) {
+      final nested = map[nestedKey];
+      final found = _findMetricValue(nested, key);
+      if (found != null) {
+        return found;
+      }
+    }
+
+    for (final entry in map.entries) {
+      final found = _findMetricValue(entry.value, key);
+      if (found != null) {
+        return found;
+      }
+    }
+
+    return null;
+  }
+
   String _metricValue(
     Map<String, dynamic> backtest,
     String key, {
     bool percent = false,
   }) {
-    dynamic val;
-    if (backtest['result'] is Map) {
-      final res = Map<String, dynamic>.from(backtest['result']);
-      if (res.containsKey(key)) val = res[key];
-      if (val == null && res['metrics'] is Map) val = res['metrics'][key];
-      if (val == null && res['stats'] is Map) val = res['stats'][key];
-    }
-
-    if (val == null && backtest.containsKey(key)) val = backtest[key];
-    if (val == null && backtest['result'] is Map) {
-      final res = Map<String, dynamic>.from(backtest['result']);
-      if (res.containsKey(key)) val = res[key];
-    }
+    final val = _findMetricValue(backtest, key);
 
     if (val == null) return percent ? '0%' : '0';
     try {
       if (val is num) {
-        return percent ? '$val%' : val.toString();
+        return percent ? '${val.toStringAsFixed(2)}%' : val.toString();
       }
       return val.toString();
     } catch (_) {
