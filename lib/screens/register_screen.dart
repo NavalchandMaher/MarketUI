@@ -17,6 +17,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  String _selectedRole = 'Trader';
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -59,6 +60,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
         fullName: _fullNameController.text.trim(),
+        mobileNumber: null,
+        role: _selectedRole,
       );
 
       if (!mounted) return;
@@ -196,6 +199,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 obscureText: _obscureConfirmPassword,
                 enabled: !_isLoading,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _selectedRole,
+                items: ['Trader', 'Admin']
+                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                    .toList(),
+                onChanged: _isLoading
+                    ? null
+                    : (v) {
+                        setState(() {
+                          _selectedRole = v ?? 'Trader';
+                        });
+                      },
+                decoration: InputDecoration(
+                  labelText: 'Account Type',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               CheckboxListTile(

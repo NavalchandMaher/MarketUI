@@ -52,6 +52,7 @@ class StrategyBuilderProvider extends ChangeNotifier {
     bool? liveMode,
     bool? enabled,
     bool? isDefault,
+    bool? published,
   }) {
     _model = _model.copyWith(
       name: name,
@@ -64,6 +65,7 @@ class StrategyBuilderProvider extends ChangeNotifier {
       liveMode: liveMode,
       enabled: enabled,
       isDefault: isDefault,
+      published: published,
     );
 
     notifyListeners();
@@ -162,6 +164,7 @@ class StrategyBuilderProvider extends ChangeNotifier {
       "tp": _model.riskSettings.rr,
       "sl": 1,
       "is_default": _model.isDefault,
+      "published": _model.published,
 
       "indicator_parameters": {
         "buy_conditions": _model.buyConditions

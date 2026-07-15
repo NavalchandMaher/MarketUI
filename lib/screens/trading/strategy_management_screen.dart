@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/strategy_model.dart';
+import '../../state/auth_state.dart';
 import '../../strategy_builder/screens/strategy_builder_screen.dart';
 import '../../state/strategies_provider.dart';
 
@@ -84,14 +85,48 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
                           ? 'System · v${strategy.version} - EMA ${strategy.emaFast}/${strategy.emaSlow}'
                           : 'v${strategy.version} - EMA ${strategy.emaFast}/${strategy.emaSlow}',
                     ),
-                    trailing: PopupMenuButton(
-                      itemBuilder: (context) {
+                    trailing: Builder(
+                      builder: (context) {
+                        final authState = context.watch<AuthState>();
+                        final isAdmin =
+                            authState.userRole.toLowerCase() == 'admin';
                         final isSystem =
                             strategy.strategyType.toLowerCase() == 'system';
                         final items = <PopupMenuEntry<String>>[];
 
                         if (isSystem) {
-                          if (!strategy.isDefault) {
+                          if (isAdmin) {
+                            items.add(
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Text('Edit'),
+                              ),
+                            );
+                            items.add(
+                              PopupMenuItem(
+                                value: strategy.published
+                                    ? 'unpublish'
+                                    : 'publish',
+                                child: Text(
+                                  strategy.published ? 'Unpublish' : 'Publish',
+                                ),
+                              ),
+                            );
+                            if (!strategy.isDefault) {
+                              items.add(
+                                const PopupMenuItem(
+                                  value: 'set_default',
+                                  child: Text('Set as default'),
+                                ),
+                              );
+                            }
+                            items.add(
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Delete'),
+                              ),
+                            );
+                          } else if (!strategy.isDefault) {
                             items.add(
                               const PopupMenuItem(
                                 value: 'set_default',
@@ -121,33 +156,72 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
                             ),
                           );
                         }
-                        return items;
-                      },
-                      onSelected: (value) async {
-                        if (value == 'edit') {
-                          _showStrategyForm(context, strategy: strategy);
-                        } else if (value == 'delete') {
-                          _showDeleteConfirm(
-                            context,
-                            strategy.name,
-                            strategy.id,
-                          );
-                        } else if (value == 'set_default') {
-                          final success = await provider.setDefaultStrategy(
-                            strategy.id,
-                          );
-                          if (!success && mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  provider.errorMessage ??
-                                      'Unable to set default strategy.',
-                                ),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
+
+                        if (items.isEmpty) {
+                          return const SizedBox.shrink();
                         }
+
+                        return PopupMenuButton(
+                          itemBuilder: (_) => items,
+                          onSelected: (value) async {
+                            final provider = context.read<StrategiesProvider>();
+                            final messenger = ScaffoldMessenger.of(context);
+                            if (value == 'edit') {
+                              _showStrategyForm(context, strategy: strategy);
+                              return;
+                            }
+
+                            if (value == 'delete') {
+                              _showDeleteConfirm(
+                                context,
+                                strategy.name,
+                                strategy.id,
+                              );
+                              return;
+                            }
+
+                            if (value == 'publish' || value == 'unpublish') {
+                              final publish = value == 'publish';
+                              final success = await provider.publishStrategy(
+                                strategy.id,
+                                publish,
+                              );
+                              if (!mounted) return;
+                              if (!success) {
+                                final error = provider.errorMessage;
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      error ??
+                                          'Unable to update publish state.',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+
+                            if (value == 'set_default') {
+                              final success = await provider.setDefaultStrategy(
+                                strategy.id,
+                              );
+                              if (!mounted) return;
+                              if (!success) {
+                                final error = provider.errorMessage;
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      error ??
+                                          'Unable to set default strategy.',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        );
                       },
                     ),
                     onTap: () => provider.selectStrategy(strategy),

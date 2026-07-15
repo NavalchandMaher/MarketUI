@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:market_app/state/auth_state.dart';
 import 'package:market_app/utils/responsive.dart';
 import '../state/strategy_builder_provider.dart';
 import '../models/strategy_models.dart';
@@ -126,19 +127,34 @@ class _Step1BasicState extends State<Step1Basic> {
             Row(
               children: [
                 Expanded(
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey(model.strategyType),
-                    initialValue: model.strategyType,
-                    items: ['Scalping', 'Swing', 'Trend']
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (v) => provider.updateBasic(strategyType: v),
-                    decoration: InputDecoration(
-                      labelText: 'Strategy Type',
-                      isDense: true,
-                      contentPadding: fieldPadding,
-                      labelStyle: labelStyle,
-                    ),
+                  child: Builder(
+                    builder: (context) {
+                      final authState = context.watch<AuthState>();
+                      final isAdmin =
+                          authState.userRole.toLowerCase() == 'admin';
+                      final types = <String>['Scalping', 'Swing', 'Trend'];
+                      if (isAdmin ||
+                          model.strategyType.toLowerCase() == 'system') {
+                        types.insert(0, 'System');
+                      }
+
+                      return DropdownButtonFormField<String>(
+                        key: ValueKey(model.strategyType),
+                        initialValue: model.strategyType,
+                        items: types
+                            .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)),
+                            )
+                            .toList(),
+                        onChanged: (v) => provider.updateBasic(strategyType: v),
+                        decoration: InputDecoration(
+                          labelText: 'Strategy Type',
+                          isDense: true,
+                          contentPadding: fieldPadding,
+                          labelStyle: labelStyle,
+                        ),
+                      );
+                    },
                   ),
                 ),
                 SizedBox(width: isMobile ? 10 : 12),
@@ -180,6 +196,17 @@ class _Step1BasicState extends State<Step1Basic> {
               activeColor: const Color(0xFF3B82F6),
               contentPadding: EdgeInsets.zero,
             ),
+            if (context.watch<AuthState>().userRole.toLowerCase() == 'admin' &&
+                model.strategyType.toLowerCase() == 'system')
+              CheckboxListTile(
+                title: const Text('Publish strategy globally'),
+                value: model.published,
+                onChanged: (value) =>
+                    provider.updateBasic(published: value ?? false),
+                controlAffinity: ListTileControlAffinity.leading,
+                activeColor: const Color(0xFF3B82F6),
+                contentPadding: EdgeInsets.zero,
+              ),
             SizedBox(height: sectionSpacing),
             const Text(
               'Templates',

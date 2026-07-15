@@ -162,6 +162,7 @@ class AuthService {
     required String password,
     required String fullName,
     String? mobileNumber,
+    String role = 'Trader',
   }) async {
     try {
       final uri = Uri.parse("${AppConfig.baseUrl}/auth/register");
@@ -175,6 +176,7 @@ class AuthService {
               "password": password,
               "full_name": fullName,
               "mobile_number": mobileNumber,
+              "role": role,
             }),
           )
           .timeout(AppConfig.apiTimeout);
@@ -302,7 +304,7 @@ class AuthService {
     }
 
     try {
-      final uri = Uri.parse("${AppConfig.baseUrl}/users/me");
+      final uri = Uri.parse("${AppConfig.baseUrl}${AppConfig.currentUser}");
 
       final response = await _client
           .get(uri, headers: _authHeaders)
@@ -312,6 +314,46 @@ class AuthService {
       return _currentUser!;
     } catch (e) {
       throw Exception("Failed to fetch current user: $e");
+    }
+  }
+
+  Future<List<dynamic>> getUsers() async {
+    if (!isAuthenticated) {
+      throw Exception("Not authenticated");
+    }
+
+    try {
+      final uri = Uri.parse("${AppConfig.baseUrl}${AppConfig.users}");
+      final response = await _client
+          .get(uri, headers: _authHeaders)
+          .timeout(AppConfig.apiTimeout);
+
+      final body = _handleResponse(response);
+      if (body is List<dynamic>) {
+        return body;
+      }
+      throw Exception("Invalid users response");
+    } catch (e) {
+      throw Exception("Failed to fetch users: $e");
+    }
+  }
+
+  Future<Map<String, dynamic>> updateUser(
+    String userId,
+    Map<String, dynamic> payload,
+  ) async {
+    if (!isAuthenticated) {
+      throw Exception("Not authenticated");
+    }
+
+    try {
+      final uri = Uri.parse("${AppConfig.baseUrl}${AppConfig.users}/$userId");
+      final response = await _client
+          .put(uri, headers: _authHeaders, body: jsonEncode(payload))
+          .timeout(AppConfig.apiTimeout);
+      return _handleResponse(response);
+    } catch (e) {
+      throw Exception("Failed to update user: $e");
     }
   }
 
@@ -394,7 +436,7 @@ class AuthService {
   // Response Handler
   // ============================================================
 
-  Map<String, dynamic> _handleResponse(http.Response response) {
+  dynamic _handleResponse(http.Response response) {
     if (response.body.isEmpty) {
       throw Exception("Empty Response");
     }

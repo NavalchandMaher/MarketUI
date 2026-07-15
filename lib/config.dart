@@ -85,6 +85,7 @@ class AppConfig {
   static const String changePassword = "/auth/change-password";
 
   static const String currentUser = "/users/me";
+  static const String users = "/users";
 
   //==============================================================
   // API Endpoints - V3

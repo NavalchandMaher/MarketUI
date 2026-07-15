@@ -214,6 +214,7 @@ class StrategyModel {
   final bool liveMode;
   final bool enabled;
   final bool isDefault;
+  final bool published;
 
   final List<Condition> buyConditions;
   final List<Condition> sellConditions;
@@ -232,6 +233,7 @@ class StrategyModel {
     this.liveMode = false,
     this.enabled = true,
     this.isDefault = false,
+    this.published = false,
     this.buyConditions = const [],
     this.sellConditions = const [],
     this.riskSettings = const RiskSettings(),
@@ -249,6 +251,7 @@ class StrategyModel {
     bool? liveMode,
     bool? enabled,
     bool? isDefault,
+    bool? published,
     List<Condition>? buyConditions,
     List<Condition>? sellConditions,
     RiskSettings? riskSettings,
@@ -265,6 +268,7 @@ class StrategyModel {
       liveMode: liveMode ?? this.liveMode,
       enabled: enabled ?? this.enabled,
       isDefault: isDefault ?? this.isDefault,
+      published: published ?? this.published,
       buyConditions: buyConditions ?? this.buyConditions,
       sellConditions: sellConditions ?? this.sellConditions,
       riskSettings: riskSettings ?? this.riskSettings,
@@ -283,6 +287,7 @@ class StrategyModel {
       "paperMode": paperMode,
       "liveMode": liveMode,
       "enabled": enabled,
+      "published": published,
       "is_default": isDefault,
       "buyConditions": buyConditions.map((e) => e.toJson()).toList(),
       "sellConditions": sellConditions.map((e) => e.toJson()).toList(),
@@ -325,6 +330,7 @@ class StrategyModel {
       liveMode: json["live_mode"] ?? false,
       enabled: json["enabled"] ?? true,
       isDefault: json["is_default"] ?? false,
+      published: json["published"] ?? false,
 
       buyConditions:
           (indicatorParameters["buy_conditions"] as List<dynamic>? ?? [])

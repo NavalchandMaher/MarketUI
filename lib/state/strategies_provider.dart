@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config.dart';
 import '../models/strategy_model.dart';
 import '../service_locator.dart';
 import '../services/api/v3_api_service.dart';
@@ -231,6 +232,37 @@ class StrategiesProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
       print('[STRATEGIES] Error setting default strategy: $e');
+      notifyListeners();
+      return false;
+    } finally {
+      _isLoading = false;
+    }
+  }
+
+  Future<bool> publishStrategy(String id, bool publish) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _api.putRequest(
+        "${AppConfig.v3Strategies}/$id/publish",
+        body: {"published": publish},
+      );
+
+      final updated = StrategyModel.fromJson(response);
+      _strategies = _strategies
+          .map((strategy) => strategy.id == id ? updated : strategy)
+          .toList();
+      if (_selectedStrategy?.id == id) {
+        _selectedStrategy = updated;
+      }
+      _errorMessage = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      print('[STRATEGIES] Error publishing strategy: $e');
       notifyListeners();
       return false;
     } finally {

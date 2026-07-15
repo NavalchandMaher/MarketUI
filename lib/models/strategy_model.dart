@@ -15,6 +15,7 @@ class StrategyModel {
   final int version;
 
   final bool isDefault;
+  final bool published;
 
   final int buyThreshold;
 
@@ -38,6 +39,7 @@ class StrategyModel {
     required this.strategyType,
     required this.version,
     required this.isDefault,
+    this.published = false,
     required this.buyThreshold,
     required this.sellThreshold,
     required this.tpPercent,
@@ -79,6 +81,7 @@ class StrategyModel {
       strategyType: json["strategy_type"] ?? "",
 
       isDefault: json["is_default"] ?? false,
+      published: json["published"] ?? false,
 
       buyThreshold:
           indicatorParams["buy_threshold"] ?? json["buy_threshold"] ?? 3,
@@ -111,6 +114,7 @@ class StrategyModel {
       "strategy_type": strategyType,
       "buy_threshold": buyThreshold,
       "sell_threshold": sellThreshold,
+      "published": published,
       "is_default": isDefault,
       "tp_percent": tpPercent,
       "sl_percent": slPercent,
@@ -129,6 +133,7 @@ class StrategyModel {
     String? strategyType,
     int? version,
     bool? isDefault,
+    bool? published,
     int? buyThreshold,
     int? sellThreshold,
     double? tpPercent,
@@ -144,6 +149,7 @@ class StrategyModel {
       strategyType: strategyType ?? this.strategyType,
       version: version ?? this.version,
       isDefault: isDefault ?? this.isDefault,
+      published: published ?? this.published,
       buyThreshold: buyThreshold ?? this.buyThreshold,
       sellThreshold: sellThreshold ?? this.sellThreshold,
       tpPercent: tpPercent ?? this.tpPercent,

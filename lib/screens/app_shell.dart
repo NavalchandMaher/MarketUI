@@ -16,6 +16,7 @@ import 'reports/enhanced_reports_screen.dart';
 import 'learning/learning_logs_screen.dart';
 import 'testing/backtest_testing_screen.dart';
 import 'scheduler_dashboard_screen.dart';
+import 'admin/admin_panel_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -212,6 +213,15 @@ class _AppShellState extends State<AppShell> {
                 style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
+            if (authState.userRole.toLowerCase() == 'admin')
+              ListTile(
+                leading: const Icon(Icons.admin_panel_settings),
+                title: const Text('Admin Panel'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _navigateToScreen(context, const AdminPanelScreen());
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.assessment),
               title: const Text('Enhanced Reports'),
