@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../config.dart';
 import '../service_locator.dart';
 import '../services/api/v3_api_service.dart';
 
@@ -48,10 +47,11 @@ class LearningLogsProvider extends ChangeNotifier {
 
     try {
       final response = await _api.getLearningLogs(
-        strategyId: category,
+        category: category,
         days: endDate != null
             ? DateTime.now().difference(endDate).inDays
             : null,
+        forceRefresh: forceRefresh,
       );
       _logs = response is List ? response : [];
       _errorMessage = null;
@@ -107,10 +107,7 @@ class LearningLogsProvider extends ChangeNotifier {
         if (metadata != null) 'metadata': metadata,
       };
 
-      final response = await _api.postRequest(
-        '${AppConfig.v3Learning}',
-        body: params,
-      );
+      await _api.createLearningLog(params);
 
       // Reload logs after creating new entry
       await loadLogs(forceRefresh: true);
@@ -150,10 +147,7 @@ class LearningLogsProvider extends ChangeNotifier {
         if (metadata != null) 'metadata': metadata,
       };
 
-      final response = await _api.putRequest(
-        '${AppConfig.v3Learning}/$logId',
-        body: params,
-      );
+      final response = await _api.updateLearningLog(logId, params);
 
       _selectedLog = response as Map<String, dynamic>?;
       _errorMessage = null;
@@ -179,7 +173,7 @@ class LearningLogsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _api.deleteRequest('${AppConfig.v3Learning}/$logId');
+      await _api.deleteLearningLog(logId);
 
       _logs.removeWhere((log) => log['id'] == logId);
       if (_selectedLog?['id'] == logId) {

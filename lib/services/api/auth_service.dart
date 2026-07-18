@@ -390,7 +390,7 @@ class AuthService {
           .post(
             uri,
             headers: _headers,
-            body: jsonEncode({"token": token, "password": password}),
+            body: jsonEncode({"token": token, "new_password": password}),
           )
           .timeout(AppConfig.apiTimeout);
 
@@ -420,7 +420,7 @@ class AuthService {
             uri,
             headers: _authHeaders,
             body: jsonEncode({
-              "old_password": oldPassword,
+              "current_password": oldPassword,
               "new_password": newPassword,
             }),
           )

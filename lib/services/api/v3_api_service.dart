@@ -552,21 +552,57 @@ class V3ApiService {
   // Learning Logs
   // ============================================================
 
-  Future<List<dynamic>> getLearningLogs({String? strategyId, int? days}) async {
+  Future<List<dynamic>> getLearningLogs({
+    String? category,
+    int? days,
+    bool forceRefresh = false,
+  }) async {
     var endpoint = AppConfig.v3Learning;
     final queryParams = <String>[];
-    if (strategyId != null) queryParams.add("strategy_id=$strategyId");
+    if (category != null) queryParams.add("category=$category");
     if (days != null) queryParams.add("days=$days");
     if (queryParams.isNotEmpty) {
       endpoint += "?${queryParams.join('&')}";
     }
 
-    final json = await getRequest(endpoint, cacheTtl: 600);
+    final json = await getRequest(
+      endpoint,
+      cacheTtl: 600,
+      forceRefresh: forceRefresh,
+    );
     return json is List ? json : [];
   }
 
   Future<Map<String, dynamic>> getLearningLogDetail(String logId) async {
     return await getRequest("${AppConfig.v3Learning}/$logId", cacheTtl: 600);
+  }
+
+  Future<Map<String, dynamic>> createLearningLog(
+    Map<String, dynamic> payload,
+  ) async {
+    final json = await postRequest(AppConfig.v3Learning, body: payload);
+    await cacheService.delete(AppConfig.v3Learning);
+    return json;
+  }
+
+  Future<Map<String, dynamic>> updateLearningLog(
+    String logId,
+    Map<String, dynamic> payload,
+  ) async {
+    final json = await putRequest(
+      "${AppConfig.v3Learning}/$logId",
+      body: payload,
+    );
+    await cacheService.delete(AppConfig.v3Learning);
+    await cacheService.delete("${AppConfig.v3Learning}/$logId");
+    return json;
+  }
+
+  Future<Map<String, dynamic>> deleteLearningLog(String logId) async {
+    final json = await deleteRequest("${AppConfig.v3Learning}/$logId");
+    await cacheService.delete(AppConfig.v3Learning);
+    await cacheService.delete("${AppConfig.v3Learning}/$logId");
+    return json;
   }
 
   Future<Map<String, dynamic>> getLatestLearning() async {
