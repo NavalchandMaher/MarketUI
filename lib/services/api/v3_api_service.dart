@@ -599,6 +599,15 @@ class V3ApiService {
     return await getRequest("${AppConfig.v3Learning}/$logId", cacheTtl: 600);
   }
 
+  Future<Map<String, dynamic>> setDefaultStrategy(String strategyId) async {
+    final json = await putRequest(
+      "${AppConfig.v3Strategies}/$strategyId/default",
+      body: const {},
+    );
+    await cacheService.delete(AppConfig.v3Strategies);
+    return json;
+  }
+
   Future<Map<String, dynamic>> createLearningLog(
     Map<String, dynamic> payload,
   ) async {

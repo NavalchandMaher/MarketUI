@@ -6,8 +6,9 @@ import '../state/strategy_builder_provider.dart';
 
 class Step4Review extends StatelessWidget {
   final VoidCallback? onBack;
+  final bool readOnly;
 
-  const Step4Review({super.key, this.onBack});
+  const Step4Review({super.key, this.onBack, this.readOnly = false});
 
   @override
   Widget build(BuildContext context) {
@@ -164,28 +165,29 @@ class Step4Review extends StatelessWidget {
                   // ),
                   const SizedBox(height: 16),
 
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Backtest feature coming soon."),
+                  if (!readOnly)
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Backtest feature coming soon."),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.analytics),
+                        label: const Text("Run Backtest"),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size.fromHeight(56),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                        );
-                      },
-                      icon: const Icon(Icons.analytics),
-                      label: const Text("Run Backtest"),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(56),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),

@@ -14,8 +14,14 @@ import '../state/strategy_builder_provider.dart';
 class WizardScaffold extends StatefulWidget {
   final String? strategyId;
   final bool isEdit;
+  final bool readOnly;
 
-  const WizardScaffold({super.key, this.strategyId, this.isEdit = false});
+  const WizardScaffold({
+    super.key,
+    this.strategyId,
+    this.isEdit = false,
+    this.readOnly = false,
+  });
 
   @override
   State<WizardScaffold> createState() => _WizardScaffoldState();
@@ -68,6 +74,11 @@ class _WizardScaffoldState extends State<WizardScaffold>
   }
 
   Future<void> _finish() async {
+    if (widget.readOnly) {
+      Navigator.pop(context);
+      return;
+    }
+
     final builder = context.read<StrategyBuilderProvider>();
     final strategies = context.read<StrategiesProvider>();
 
@@ -130,7 +141,9 @@ class _WizardScaffoldState extends State<WizardScaffold>
         children: [
           Expanded(
             child: Text(
-              widget.isEdit ? "Edit Strategy" : "New Strategy Builder",
+              widget.readOnly
+                  ? "Strategy Preview"
+                  : (widget.isEdit ? "Edit Strategy" : "New Strategy Builder"),
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: isMobile ? 20 : 24,
@@ -171,15 +184,16 @@ class _WizardScaffoldState extends State<WizardScaffold>
         ],
       ),
 
-      actions: [
-        IconButton(
-          tooltip: "Save Draft",
-          onPressed: () {},
-          icon: const Icon(Icons.save_outlined, color: Colors.white),
-        ),
-
-        const SizedBox(width: 8),
-      ],
+      actions: widget.readOnly
+          ? null
+          : [
+              IconButton(
+                tooltip: "Save Draft",
+                onPressed: () {},
+                icon: const Icon(Icons.save_outlined, color: Colors.white),
+              ),
+              const SizedBox(width: 8),
+            ],
     );
   }
 
@@ -222,11 +236,11 @@ class _WizardScaffoldState extends State<WizardScaffold>
                     });
                   },
 
-                  children: const [
-                    Step1Basic(),
-                    Step2Conditions(),
-                    Step3Risk(),
-                    Step4Review(),
+                  children: [
+                    Step1Basic(readOnly: widget.readOnly),
+                    Step2Conditions(readOnly: widget.readOnly),
+                    Step3Risk(readOnly: widget.readOnly),
+                    Step4Review(readOnly: widget.readOnly),
                   ],
                 ),
               ),
@@ -275,9 +289,11 @@ class _WizardScaffoldState extends State<WizardScaffold>
                       ),
                       label: Text(
                         _currentStep == 3
-                            ? (widget.isEdit
-                                  ? "Update Strategy"
-                                  : "Save Strategy")
+                            ? (widget.readOnly
+                                  ? "Close Preview"
+                                  : (widget.isEdit
+                                        ? "Update Strategy"
+                                        : "Save Strategy"))
                             : "Next",
                       ),
                       style: ElevatedButton.styleFrom(

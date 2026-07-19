@@ -7,7 +7,8 @@ import '../models/strategy_models.dart';
 
 class Step1Basic extends StatefulWidget {
   final VoidCallback? onNext;
-  const Step1Basic({super.key, this.onNext});
+  final bool readOnly;
+  const Step1Basic({super.key, this.onNext, this.readOnly = false});
 
   @override
   State<Step1Basic> createState() => _Step1BasicState();
@@ -71,6 +72,7 @@ class _Step1BasicState extends State<Step1Basic> {
                 labelStyle: labelStyle,
               ),
               onChanged: (v) => provider.updateBasic(name: v),
+              readOnly: widget.readOnly,
             ),
             SizedBox(height: sectionSpacing),
             TextField(
@@ -83,6 +85,7 @@ class _Step1BasicState extends State<Step1Basic> {
                 labelStyle: labelStyle,
               ),
               onChanged: (v) => provider.updateBasic(description: v),
+              readOnly: widget.readOnly,
               maxLines: 3,
             ),
             SizedBox(height: sectionSpacing),
@@ -95,7 +98,9 @@ class _Step1BasicState extends State<Step1Basic> {
                     items: ['BINANCE', 'COINBASE', 'KRAKEN']
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (v) => provider.updateBasic(exchange: v),
+                    onChanged: widget.readOnly
+                        ? null
+                        : (v) => provider.updateBasic(exchange: v),
                     decoration: InputDecoration(
                       labelText: 'Exchange',
                       isDense: true,
@@ -112,7 +117,9 @@ class _Step1BasicState extends State<Step1Basic> {
                     items: ['1m', '5m', '15m', '1h', '4h']
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (v) => provider.updateBasic(timeframe: v),
+                    onChanged: widget.readOnly
+                        ? null
+                        : (v) => provider.updateBasic(timeframe: v),
                     decoration: InputDecoration(
                       labelText: 'Timeframe',
                       isDense: true,
@@ -146,7 +153,9 @@ class _Step1BasicState extends State<Step1Basic> {
                               (e) => DropdownMenuItem(value: e, child: Text(e)),
                             )
                             .toList(),
-                        onChanged: (v) => provider.updateBasic(strategyType: v),
+                        onChanged: widget.readOnly
+                            ? null
+                            : (v) => provider.updateBasic(strategyType: v),
                         decoration: InputDecoration(
                           labelText: 'Strategy Type',
                           isDense: true,
@@ -166,10 +175,12 @@ class _Step1BasicState extends State<Step1Basic> {
                       const SizedBox(height: 6),
                       ToggleButtons(
                         isSelected: [model.paperMode, model.liveMode],
-                        onPressed: (i) => provider.updateBasic(
-                          paperMode: i == 0,
-                          liveMode: i == 1,
-                        ),
+                        onPressed: widget.readOnly
+                            ? null
+                            : (i) => provider.updateBasic(
+                                paperMode: i == 0,
+                                liveMode: i == 1,
+                              ),
                         children: const [
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 12),
@@ -190,8 +201,9 @@ class _Step1BasicState extends State<Step1Basic> {
             CheckboxListTile(
               title: const Text('Set as default strategy'),
               value: model.isDefault,
-              onChanged: (value) =>
-                  provider.updateBasic(isDefault: value ?? false),
+              onChanged: widget.readOnly
+                  ? null
+                  : (value) => provider.updateBasic(isDefault: value ?? false),
               controlAffinity: ListTileControlAffinity.leading,
               activeColor: const Color(0xFF3B82F6),
               contentPadding: EdgeInsets.zero,
@@ -201,8 +213,9 @@ class _Step1BasicState extends State<Step1Basic> {
               CheckboxListTile(
                 title: const Text('Publish strategy globally'),
                 value: model.published,
-                onChanged: (value) =>
-                    provider.updateBasic(published: value ?? false),
+              onChanged: widget.readOnly
+                  ? null
+                  : (value) => provider.updateBasic(published: value ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
                 activeColor: const Color(0xFF3B82F6),
                 contentPadding: EdgeInsets.zero,
@@ -216,7 +229,9 @@ class _Step1BasicState extends State<Step1Basic> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: [
+              children: widget.readOnly
+                  ? const []
+                  : [
                 _templateChip(provider, 'EMA Scalping'),
                 _templateChip(provider, 'EMA Swing'),
                 _templateChip(provider, 'Supertrend'),
@@ -225,7 +240,7 @@ class _Step1BasicState extends State<Step1Basic> {
                 _templateChip(provider, 'MACD'),
                 _templateChip(provider, 'RSI'),
                 _templateChip(provider, 'Custom'),
-              ],
+                    ],
             ),
             SizedBox(height: sectionSpacing),
             // if (widget.onNext != null)

@@ -8,8 +8,14 @@ import '../state/strategy_builder_provider.dart';
 class Step3Risk extends StatefulWidget {
   final VoidCallback? onNext;
   final VoidCallback? onBack;
+  final bool readOnly;
 
-  const Step3Risk({super.key, this.onNext, this.onBack});
+  const Step3Risk({
+    super.key,
+    this.onNext,
+    this.onBack,
+    this.readOnly = false,
+  });
 
   @override
   State<Step3Risk> createState() => _Step3RiskState();
@@ -107,6 +113,7 @@ class _Step3RiskState extends State<Step3Risk> {
                       Expanded(
                         child: TextFormField(
                           controller: riskController,
+                          readOnly: widget.readOnly,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: "Risk %",
@@ -122,6 +129,7 @@ class _Step3RiskState extends State<Step3Risk> {
                       Expanded(
                         child: TextFormField(
                           controller: rrController,
+                          readOnly: widget.readOnly,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: "Risk Reward",
@@ -141,6 +149,7 @@ class _Step3RiskState extends State<Step3Risk> {
                       Expanded(
                         child: TextFormField(
                           controller: dailyTradeController,
+                          readOnly: widget.readOnly,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: "Max Daily Trades",
@@ -156,6 +165,7 @@ class _Step3RiskState extends State<Step3Risk> {
                       Expanded(
                         child: TextFormField(
                           controller: openTradeController,
+                          readOnly: widget.readOnly,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: "Max Open Trades",
@@ -187,7 +197,7 @@ class _Step3RiskState extends State<Step3Risk> {
 
                       DropdownMenuItem(value: "Kelly", child: Text("Kelly")),
                     ],
-                    onChanged: (v) {
+                    onChanged: widget.readOnly ? null : (v) {
                       setState(() {
                         positionSizing = v!;
                       });
@@ -207,7 +217,7 @@ class _Step3RiskState extends State<Step3Risk> {
                         child: Text("Isolated"),
                       ),
                     ],
-                    onChanged: (v) {
+                    onChanged: widget.readOnly ? null : (v) {
                       setState(() {
                         marginMode = v!;
                       });
@@ -236,7 +246,7 @@ class _Step3RiskState extends State<Step3Risk> {
                     subtitle: const Text(
                       "Stop trading after account reaches daily loss.",
                     ),
-                    onChanged: (value) {
+                    onChanged: widget.readOnly ? null : (value) {
                       setState(() {
                         equityProtection = value;
                       });
@@ -250,7 +260,7 @@ class _Step3RiskState extends State<Step3Risk> {
                     subtitle: const Text(
                       "Disable strategy after max drawdown.",
                     ),
-                    onChanged: (value) {
+                    onChanged: widget.readOnly ? null : (value) {
                       setState(() {
                         drawdownLock = value;
                       });
@@ -264,7 +274,7 @@ class _Step3RiskState extends State<Step3Risk> {
                     subtitle: const Text(
                       "Adjust position size according to account balance.",
                     ),
-                    onChanged: (value) {
+                    onChanged: widget.readOnly ? null : (value) {
                       setState(() {
                         dynamicPosition = value;
                       });
@@ -278,7 +288,7 @@ class _Step3RiskState extends State<Step3Risk> {
                     subtitle: const Text(
                       "Avoid opening trades during high impact news.",
                     ),
-                    onChanged: (value) {
+                    onChanged: widget.readOnly ? null : (value) {
                       setState(() {
                         newsFilter = value;
                       });
@@ -292,7 +302,7 @@ class _Step3RiskState extends State<Step3Risk> {
                     subtitle: const Text(
                       "Trade only during selected market sessions.",
                     ),
-                    onChanged: (value) {
+                    onChanged: widget.readOnly ? null : (value) {
                       setState(() {
                         sessionFilter = value;
                       });

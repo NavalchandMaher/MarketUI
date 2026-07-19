@@ -9,8 +9,14 @@ import 'indicator_library_sheet.dart';
 class Step2Conditions extends StatefulWidget {
   final VoidCallback? onNext;
   final VoidCallback? onBack;
+  final bool readOnly;
 
-  const Step2Conditions({super.key, this.onNext, this.onBack});
+  const Step2Conditions({
+    super.key,
+    this.onNext,
+    this.onBack,
+    this.readOnly = false,
+  });
 
   @override
   State<Step2Conditions> createState() => _Step2ConditionsState();
@@ -110,26 +116,27 @@ class _Step2ConditionsState extends State<Step2Conditions>
           ),
           SizedBox(height: isMobile ? 16 : 20),
 
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () =>
-                      _openIndicatorLibrary(_tabController.index == 0),
-                  icon: const Icon(Icons.add),
-                  label: const Text("Add Condition"),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Color(0xFF3B82F6)),
-                    minimumSize: Size.fromHeight(isMobile ? 48 : 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+          if (!widget.readOnly)
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () =>
+                        _openIndicatorLibrary(_tabController.index == 0),
+                    icon: const Icon(Icons.add),
+                    label: const Text("Add Condition"),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Color(0xFF3B82F6)),
+                      minimumSize: Size.fromHeight(isMobile ? 48 : 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );
@@ -169,16 +176,28 @@ class _Step2ConditionsState extends State<Step2Conditions>
               ),
             ),
             SizedBox(height: isMobile ? 18 : 30),
-            ElevatedButton.icon(
-              onPressed: () => _openIndicatorLibrary(buySide),
-              icon: const Icon(Icons.add),
-              label: const Text("Add First Condition"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6),
-                minimumSize: Size(isMobile ? 180 : 220, 50),
+            if (!widget.readOnly)
+              ElevatedButton.icon(
+                onPressed: () => _openIndicatorLibrary(buySide),
+                icon: const Icon(Icons.add),
+                label: const Text("Add First Condition"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3B82F6),
+                  minimumSize: Size(isMobile ? 180 : 220, 50),
+                ),
               ),
-            ),
           ],
+        ),
+      );
+    }
+
+    if (widget.readOnly) {
+      return ListView.builder(
+        itemCount: items.length,
+        itemBuilder: (context, index) => _conditionCard(
+          buySide: buySide,
+          condition: items[index],
+          index: index,
         ),
       );
     }
@@ -196,8 +215,25 @@ class _Step2ConditionsState extends State<Step2Conditions>
       itemBuilder: (context, index) {
         final condition = items[index];
 
-        return Card(
+        return _conditionCard(
+          buySide: buySide,
+          condition: condition,
+          index: index,
           key: ValueKey(condition.id),
+        );
+      },
+    );
+  }
+
+  Widget _conditionCard({
+    required bool buySide,
+    required Condition condition,
+    required int index,
+    Key? key,
+  }) {
+    final isMobile = ResponsiveBreakpoints.isMobile(context);
+    return Card(
+          key: key,
           margin: EdgeInsets.only(bottom: isMobile ? 12 : 14),
           color: const Color(0xFF111827),
           elevation: 0,
@@ -296,41 +332,38 @@ class _Step2ConditionsState extends State<Step2Conditions>
 
                 Row(
                   children: [
-                    IconButton(
-                      tooltip: "Edit",
-                      onPressed: () {
-                        // TODO: Open indicator configuration dialog
-                      },
-                      icon: const Icon(Icons.edit_outlined, color: Colors.blue),
-                    ),
-
-                    IconButton(
-                      tooltip: "Delete",
-                      onPressed: () {
-                        context.read<StrategyBuilderProvider>().removeCondition(
-                          buySide: buySide,
-                          conditionId: condition.id,
-                        );
-                      },
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    ),
-
-                    const Spacer(),
-
-                    ReorderableDragStartListener(
-                      index: index,
-                      child: const Icon(
-                        Icons.drag_indicator,
-                        color: Colors.grey,
+                    if (!widget.readOnly) ...[
+                      IconButton(
+                        tooltip: "Edit",
+                        onPressed: () {
+                          // TODO: Open indicator configuration dialog
+                        },
+                        icon: const Icon(Icons.edit_outlined, color: Colors.blue),
                       ),
-                    ),
+                      IconButton(
+                        tooltip: "Delete",
+                        onPressed: () {
+                          context.read<StrategyBuilderProvider>().removeCondition(
+                            buySide: buySide,
+                            conditionId: condition.id,
+                          );
+                        },
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      ),
+                      const Spacer(),
+                      ReorderableDragStartListener(
+                        index: index,
+                        child: const Icon(
+                          Icons.drag_indicator,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ],
             ),
           ),
         );
-      },
-    );
   }
 }

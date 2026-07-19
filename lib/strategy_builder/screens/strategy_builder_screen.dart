@@ -10,11 +10,13 @@ import '../models/strategy_models.dart' as builder;
 class StrategyBuilderScreen extends StatefulWidget {
   final legacy.StrategyModel? strategy;
   final String? defaultStrategyType;
+  final bool readOnly;
 
   const StrategyBuilderScreen({
     super.key,
     this.strategy,
     this.defaultStrategyType,
+    this.readOnly = false,
   });
 
   @override
@@ -85,6 +87,7 @@ class _StrategyBuilderScreenState extends State<StrategyBuilderScreen> {
             WizardScaffold(
               strategyId: widget.strategy?.id,
               isEdit: widget.strategy != null,
+              readOnly: widget.readOnly,
             ),
             if (_isLoadingDetails)
               Container(

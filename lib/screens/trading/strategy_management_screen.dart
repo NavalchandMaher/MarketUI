@@ -147,6 +147,21 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
                                 child: Text('Delete'),
                               ),
                             );
+                          } else {
+                            items.add(
+                              const PopupMenuItem(
+                                value: 'preview',
+                                child: Text('Preview'),
+                              ),
+                            );
+                            if (!strategy.isDefault) {
+                              items.add(
+                                const PopupMenuItem(
+                                  value: 'set_default',
+                                  child: Text('Set as default'),
+                                ),
+                              );
+                            }
                           }
                         } else {
                           items.add(
@@ -182,6 +197,11 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
                             final messenger = ScaffoldMessenger.of(context);
                             if (value == 'edit') {
                               _showStrategyForm(context, strategy: strategy);
+                              return;
+                            }
+
+                            if (value == 'preview') {
+                              _showStrategyPreview(context, strategy);
                               return;
                             }
 
@@ -255,6 +275,17 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
         builder: (_) => StrategyBuilderScreen(
           strategy: strategy,
           defaultStrategyType: widget.systemOnly ? 'System' : null,
+        ),
+      ),
+    );
+  }
+
+  void _showStrategyPreview(BuildContext context, StrategyModel strategy) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => StrategyBuilderScreen(
+          strategy: strategy,
+          readOnly: true,
         ),
       ),
     );

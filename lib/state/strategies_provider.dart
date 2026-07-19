@@ -213,7 +213,7 @@ class StrategiesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _api.updateStrategy(id, {"is_default": true});
+      final response = await _api.setDefaultStrategy(id);
 
       final updated = StrategyModel.fromJson(response);
       _strategies = _strategies
