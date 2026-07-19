@@ -157,8 +157,10 @@ class StrategyBuilderProvider extends ChangeNotifier {
       "paper_mode": _model.paperMode,
       "live_mode": _model.liveMode,
       "priority": 1,
+      "exchange": _model.exchange,
       "symbol": _model.market,
       "timeframe": _model.timeframe,
+      "strategy_type": _model.strategyType,
 
       "risk_percent": _model.riskSettings.riskPerTrade,
       "tp": _model.riskSettings.rr,
