@@ -8,6 +8,7 @@ import '../utils/responsive_text.dart';
 import 'dashboard_screen.dart';
 import 'responsive_dashboard_screen.dart';
 import 'analysis_screen.dart';
+import 'strategy_signal_screen.dart';
 import 'reports_screen.dart';
 import 'settings_screen.dart';
 import 'trades_screen.dart';
@@ -34,6 +35,7 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
   static const List<Widget> _pages = [
     ResponsiveDashboardScreen(),
     AnalysisScreen(),
+    StrategySignalScreen(),
     TradesScreen(),
     ReportsScreen(),
     StrategyManagementScreen(),
@@ -54,6 +56,12 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
       selectedIcon: Icons.analytics,
       label: 'Analysis',
       tooltip: 'Market Analysis',
+    ),
+    NavigationItem(
+      icon: Icons.bolt_outlined,
+      selectedIcon: Icons.bolt,
+      label: 'Signals',
+      tooltip: 'Strategy Signals',
     ),
     NavigationItem(
       icon: Icons.show_chart_outlined,
@@ -128,8 +136,8 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
   // ============================================================
 
   Widget _buildMobileLayout(AppState appState) {
-    // Clamp currentIndex to valid BottomNavigationBar range (0-4)
-    // Items 5-7 (Backtest, History, Settings) are accessed via menu only
+    // Clamp currentIndex to valid BottomNavigationBar range (0-4).
+    // Remaining pages are accessed through the mobile menu.
     final bottomNavIndex = _currentIndex < 5 ? _currentIndex : 0;
 
     return Scaffold(

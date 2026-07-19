@@ -459,11 +459,12 @@ class V3ApiService {
   // ============================================================
 
   Future<Map<String, dynamic>> startPaperTrading({
-    required String strategyId,
+    String symbol = AppConfig.defaultSymbol,
+    String timeframe = AppConfig.defaultTimeframe,
   }) async {
     return await postRequest(
-      "${AppConfig.v3Paper}/start",
-      body: {"strategy_id": strategyId},
+      "${AppConfig.v3Paper}/start?symbol=$symbol&timeframe=$timeframe",
+      body: const {},
     );
   }
 

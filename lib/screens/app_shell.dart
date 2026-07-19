@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../state/app_state.dart';
 import '../state/auth_state.dart';
 import 'analysis_screen.dart';
+import 'strategy_signal_screen.dart';
 import 'dashboard_screen.dart';
 import 'reports_screen.dart';
 import 'settings_screen.dart';
@@ -32,6 +33,7 @@ class _AppShellState extends State<AppShell> {
   static const List<Widget> _pages = [
     DashboardScreen(),
     AnalysisScreen(),
+    StrategySignalScreen(),
     TradesScreen(),
     ReportsScreen(),
     SettingsScreen(),
@@ -47,6 +49,11 @@ class _AppShellState extends State<AppShell> {
       icon: Icon(Icons.analytics_outlined),
       selectedIcon: Icon(Icons.analytics),
       label: 'Analysis',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.bolt_outlined),
+      selectedIcon: Icon(Icons.bolt),
+      label: 'Signals',
     ),
     NavigationDestination(
       icon: Icon(Icons.show_chart_outlined),
