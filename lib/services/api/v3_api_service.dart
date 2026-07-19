@@ -392,7 +392,7 @@ class V3ApiService {
 
   Future<List<dynamic>> getAdminStrategies({bool forceRefresh = false}) async {
     final json = await getRequest(
-      "${AppConfig.v3Strategies}/admin/strategies",
+      AppConfig.v3AdminStrategies,
       cacheTtl: 60,
       forceRefresh: forceRefresh,
     );
@@ -408,7 +408,7 @@ class V3ApiService {
       body: {"published": published},
     );
     await cacheService.delete(AppConfig.v3Strategies);
-    await cacheService.delete("${AppConfig.v3Strategies}/admin/strategies");
+    await cacheService.delete(AppConfig.v3AdminStrategies);
     return json;
   }
 

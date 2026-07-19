@@ -98,6 +98,8 @@ class AppConfig {
 
   static const String v3Strategies = "/v3/strategies";
 
+  static const String v3AdminStrategies = "/v3/admin/strategies";
+
   static const String v3Paper = "/v3/paper";
 
   static const String v3Backtest = "/v3/backtest";
