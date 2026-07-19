@@ -36,7 +36,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       final v3Service = getIt<V3ApiService>();
 
       final users = await authService.getUsers();
-      final strategies = await v3Service.getStrategies(forceRefresh: true);
+      final strategies = await v3Service.getAdminStrategies(forceRefresh: true);
 
       setState(() {
         _users = users;
@@ -79,10 +79,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   Future<void> _toggleStrategyPublished(String id, bool published) async {
     final v3Service = getIt<V3ApiService>();
     try {
-      await v3Service.putRequest(
-        '/v3/strategies/$id/publish',
-        body: {'published': !published},
-      );
+      await v3Service.setSystemStrategyPublished(id, !published);
       await _loadAdminData();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

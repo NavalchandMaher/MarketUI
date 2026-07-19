@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/api/auth_service.dart';
 import '../service_locator.dart';
+import '../state/auth_state.dart';
 
 /// ===============================================================
 /// Splash Screen - Initial App Loading
@@ -48,6 +50,10 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
 
       if (authService.isAuthenticated) {
+        // Restore the profile as well as the token. The active responsive
+        // shell uses this role to route administrators to AdminHomeScreen.
+        await context.read<AuthState>().initialize();
+        if (!mounted) return;
         // Navigate to home
         Navigator.of(context).pushReplacementNamed('/home');
       } else {

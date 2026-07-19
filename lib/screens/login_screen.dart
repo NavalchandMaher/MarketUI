@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/api/auth_service.dart';
-import '../service_locator.dart';
 import '../state/app_state.dart';
+import '../state/auth_state.dart';
 
 /// ===============================================================
 /// Login Screen
@@ -36,8 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final authService = getIt<AuthService>();
-      await authService.login(
+      await context.read<AuthState>().login(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );

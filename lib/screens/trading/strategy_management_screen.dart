@@ -30,11 +30,24 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = context.watch<AuthState>().userRole.toLowerCase() == 'admin';
+    if (widget.systemOnly && !isAdmin) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('System Strategy Management')),
+        body: const Center(child: Text('Admin access is required.')),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Strategy Management'), elevation: 0),
+      appBar: AppBar(
+        title: Text(
+          widget.systemOnly ? 'System Strategy Management' : 'Strategy Management',
+        ),
+        elevation: 0,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showStrategyForm(context),
-        tooltip: 'New Strategy',
+        tooltip: widget.systemOnly ? 'New System Strategy' : 'New Strategy',
         child: const Icon(Icons.add),
       ),
       body: Consumer<StrategiesProvider>(
@@ -132,13 +145,6 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
                               const PopupMenuItem(
                                 value: 'delete',
                                 child: Text('Delete'),
-                              ),
-                            );
-                          } else if (!strategy.isDefault) {
-                            items.add(
-                              const PopupMenuItem(
-                                value: 'set_default',
-                                child: Text('Set as default'),
                               ),
                             );
                           }
@@ -246,7 +252,10 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
   void _showStrategyForm(BuildContext context, {StrategyModel? strategy}) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => StrategyBuilderScreen(strategy: strategy),
+        builder: (_) => StrategyBuilderScreen(
+          strategy: strategy,
+          defaultStrategyType: widget.systemOnly ? 'System' : null,
+        ),
       ),
     );
   }

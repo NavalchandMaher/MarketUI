@@ -390,6 +390,28 @@ class V3ApiService {
     return json is List ? json : [];
   }
 
+  Future<List<dynamic>> getAdminStrategies({bool forceRefresh = false}) async {
+    final json = await getRequest(
+      "${AppConfig.v3Strategies}/admin/strategies",
+      cacheTtl: 60,
+      forceRefresh: forceRefresh,
+    );
+    return json is List ? json : [];
+  }
+
+  Future<Map<String, dynamic>> setSystemStrategyPublished(
+    String strategyId,
+    bool published,
+  ) async {
+    final json = await putRequest(
+      "${AppConfig.v3Strategies}/$strategyId/publish",
+      body: {"published": published},
+    );
+    await cacheService.delete(AppConfig.v3Strategies);
+    await cacheService.delete("${AppConfig.v3Strategies}/admin/strategies");
+    return json;
+  }
+
   Future<Map<String, dynamic>> getStrategy(
     String strategyId, {
     bool forceRefresh = false,

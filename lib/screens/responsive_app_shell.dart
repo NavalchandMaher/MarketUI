@@ -14,6 +14,7 @@ import 'trades_screen.dart';
 import 'history_screen.dart';
 import 'trading/strategy_management_screen.dart';
 import 'testing/backtest_testing_screen.dart';
+import 'admin/admin_home_screen.dart';
 
 /// ===============================================================
 /// Responsive App Shell
@@ -104,6 +105,10 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
   Widget build(BuildContext context) {
     return Consumer2<AppState, AuthState>(
       builder: (context, appState, authState, _) {
+        if (authState.userRole.toLowerCase() == 'admin') {
+          return const AdminHomeScreen();
+        }
+
         final isMobile = ResponsiveBreakpoints.isMobile(context);
         final isTablet = ResponsiveBreakpoints.isTablet(context);
 
