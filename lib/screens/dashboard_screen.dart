@@ -143,6 +143,11 @@ class DashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text('Market Snapshot', style: AppTextStyles.title),
+              const SizedBox(height: 6),
+              Text(
+                'Default Strategy: ${state.currentStrategy} v${state.strategyVersion}',
+                style: AppTextStyles.subtitle,
+              ),
               const SizedBox(height: 16),
               Row(
                 children: [

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/strategy_model.dart';
+import '../../state/app_state.dart';
 import '../../state/auth_state.dart';
 import '../../strategy_builder/screens/strategy_builder_screen.dart';
 import '../../state/strategies_provider.dart';
@@ -241,6 +242,12 @@ class _StrategyManagementScreenState extends State<StrategyManagementScreen> {
                                 strategy.id,
                               );
                               if (!mounted) return;
+                              if (success) {
+                                await context.read<AppState>().refreshHomeData(
+                                  forceRefresh: true,
+                                );
+                                if (!mounted) return;
+                              }
                               if (!success) {
                                 final error = provider.errorMessage;
                                 messenger.showSnackBar(

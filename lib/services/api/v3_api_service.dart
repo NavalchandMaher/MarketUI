@@ -124,7 +124,7 @@ class V3ApiService {
 
       _log("→ GET REQUEST: $uri");
       _log(
-        "  Headers: ${headers.entries.map((e) => e.key + ': ' + (e.key == 'Authorization' ? e.value.substring(0, min(30, e.value.length)) + '...' : e.value)).join(', ')}",
+        "  Headers: ${headers.entries.map((e) => '${e.key}: ${e.key == 'Authorization' ? e.value.substring(0, min(30, e.value.length)) + '...' : e.value}').join(', ')}",
       );
 
       _log("[DEBUG] Sending HTTP GET request...");
@@ -192,7 +192,7 @@ class V3ApiService {
 
       _log("→ POST REQUEST: $uri");
       _log(
-        "  Headers: ${headers.entries.map((e) => e.key + ': ' + (e.key == 'Authorization' ? e.value.substring(0, min(30, e.value.length)) + '...' : e.value)).join(', ')}",
+        "  Headers: ${headers.entries.map((e) => '${e.key}: ${e.key == 'Authorization' ? e.value.substring(0, min(30, e.value.length)) + '...' : e.value}').join(', ')}",
       );
       _log("  Body: ${body ?? {}}");
 
@@ -233,7 +233,7 @@ class V3ApiService {
 
       _log("PUT REQUEST: $uri");
       _log(
-        "  Headers: ${headers.entries.map((e) => e.key + ': ' + (e.key == 'Authorization' ? e.value.substring(0, min(30, e.value.length)) + '...' : e.value)).join(', ')}",
+        "  Headers: ${headers.entries.map((e) => '${e.key}: ${e.key == 'Authorization' ? e.value.substring(0, min(30, e.value.length)) + '...' : e.value}').join(', ')}",
       );
 
       final response = await _client
@@ -271,7 +271,7 @@ class V3ApiService {
 
       _log("DELETE REQUEST: $uri");
       _log(
-        "  Headers: ${headers.entries.map((e) => e.key + ': ' + (e.key == 'Authorization' ? e.value.substring(0, min(30, e.value.length)) + '...' : e.value)).join(', ')}",
+        "  Headers: ${headers.entries.map((e) => '${e.key}: ${e.key == 'Authorization' ? e.value.substring(0, min(30, e.value.length)) + '...' : e.value}').join(', ')}",
       );
 
       final response = await _client
@@ -475,8 +475,12 @@ class V3ApiService {
     return await getRequest("${AppConfig.v3Paper}/status", cacheTtl: 10);
   }
 
-  Future<List<dynamic>> getPaperOpenTrades() async {
-    final json = await getRequest("${AppConfig.v3Paper}/open", cacheTtl: 20);
+  Future<List<dynamic>> getPaperOpenTrades({bool forceRefresh = false}) async {
+    final json = await getRequest(
+      "${AppConfig.v3Paper}/open",
+      cacheTtl: 20,
+      forceRefresh: forceRefresh,
+    );
     return json is List ? json : [];
   }
 
@@ -605,6 +609,11 @@ class V3ApiService {
       body: const {},
     );
     await cacheService.delete(AppConfig.v3Strategies);
+    await cacheService.deleteWhere(
+      (key) =>
+          key == AppConfig.v3Dashboard ||
+          key.startsWith('${AppConfig.analysis}?'),
+    );
     return json;
   }
 
@@ -751,7 +760,7 @@ class ValidationException extends ApiException {
 }
 
 class ServerException extends ApiException {
-  ServerException(String message, int statusCode) : super(message, statusCode);
+  ServerException(super.message, super.statusCode);
 }
 
 class NetworkException extends ApiException {

@@ -107,6 +107,21 @@ class CacheService {
     }
   }
 
+  /// Delete cached entries matching a predicate, such as every analysis
+  /// response after the user changes their default strategy.
+  Future<void> deleteWhere(bool Function(String key) predicate) async {
+    try {
+      final keys = _cacheBox.keys
+          .whereType<String>()
+          .where(predicate)
+          .toList(growable: false);
+      await _cacheBox.deleteAll(keys);
+      print('[CACHE] Cleared ${keys.length} matching entries');
+    } catch (e) {
+      print('[CACHE] Error clearing matching entries: $e');
+    }
+  }
+
   /// Clear all cache
   Future<void> clear() async {
     try {

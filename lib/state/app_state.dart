@@ -168,7 +168,7 @@ class AppState extends ChangeNotifier {
     await refreshHomeData();
   }
 
-  Future<void> refreshHomeData() async {
+  Future<void> refreshHomeData({bool forceRefresh = false}) async {
     if (isLoading || isRefreshing) return;
 
     if (!_authService.isAuthenticated) {
@@ -193,9 +193,13 @@ class AppState extends ChangeNotifier {
 
     try {
       final results = await Future.wait([
-        _api.getAnalysis(symbol: selectedSymbol, timeframe: selectedTimeframe),
-        _api.getDashboard(),
-        _api.getPaperOpenTrades(),
+        _api.getAnalysis(
+          symbol: selectedSymbol,
+          timeframe: selectedTimeframe,
+          forceRefresh: forceRefresh,
+        ),
+        _api.getDashboard(forceRefresh: forceRefresh),
+        _api.getPaperOpenTrades(forceRefresh: forceRefresh),
       ], eagerError: false);
 
       final newAnalysis = results[0] as AnalysisModel;
@@ -254,8 +258,9 @@ class AppState extends ChangeNotifier {
     _refreshTimer?.cancel();
     if (!_authService.isAuthenticated ||
         !autoRefreshEnabled ||
-        refreshIntervalSeconds <= 0)
+        refreshIntervalSeconds <= 0) {
       return;
+    }
 
     _refreshTimer = Timer.periodic(Duration(seconds: refreshIntervalSeconds), (
       _,
@@ -283,6 +288,8 @@ class AppState extends ChangeNotifier {
   int get confidence => analysis?.confidence ?? 0;
   String get signal => analysis?.signal ?? AppConstants.wait;
   double get currentPrice => analysis?.price ?? 0.0;
-  String get currentStrategy => dashboardData?['strategy_name'] ?? 'DEFAULT';
-  int get strategyVersion => dashboardData?['strategy_version'] ?? 1;
+  String get currentStrategy =>
+      analysis?.strategy.name ?? dashboardData?['strategy_name'] ?? 'DEFAULT';
+  int get strategyVersion =>
+      analysis?.strategy.version ?? dashboardData?['strategy_version'] ?? 1;
 }

@@ -163,15 +163,15 @@ class _ResponsiveDashboardScreenState extends State<ResponsiveDashboardScreen>
 
             // Account Summary
             FadeScaleAnimation(
-              child: _buildAccountCard(context, state),
               duration: const Duration(milliseconds: 700),
+              child: _buildAccountCard(context, state),
             ),
             const SizedBox(height: 16),
 
             // Quick Actions
             FadeScaleAnimation(
-              child: _buildQuickActionsCard(context, state),
               duration: const Duration(milliseconds: 800),
+              child: _buildQuickActionsCard(context, state),
             ),
             const SizedBox(height: 24),
           ],
@@ -247,6 +247,11 @@ class _ResponsiveDashboardScreenState extends State<ResponsiveDashboardScreen>
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          ResponsiveText(
+            'Default strategy: ${state.currentStrategy} v${state.strategyVersion}',
+            styleBuilder: ResponsiveTextStyle.getSubtitle,
           ),
           const SizedBox(height: 12),
           ClipRRect(

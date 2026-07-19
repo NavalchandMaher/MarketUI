@@ -288,6 +288,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 valueColor: AppColors.primary,
               ),
               MetricTile(
+                title: 'Default Strategy',
+                value: analysis.strategy.name,
+                icon: Icons.auto_graph,
+                valueColor: AppColors.primary,
+              ),
+              MetricTile(
                 title: 'Price',
                 value: '₹${analysis.price.toStringAsFixed(2)}',
                 icon: Icons.attach_money,
