@@ -71,8 +71,8 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
     setState(() => _placingPaperTradeStrategyId = analysis.strategy.id);
     try {
       final response = await _api.startPaperTrading(
-        symbol: state.selectedSymbol,
-        timeframe: state.selectedTimeframe,
+        symbol: analysis.symbol,
+        timeframe: analysis.timeframe,
         strategyId: analysis.strategy.id,
       );
       if (!mounted) return;
@@ -82,7 +82,9 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
         SnackBar(
           content: Text(
             response['message']?.toString() ??
-                (success ? 'Paper trade opened.' : 'Unable to open paper trade.'),
+                (success
+                    ? 'Paper trade opened.'
+                    : 'Unable to open paper trade.'),
           ),
           backgroundColor: success ? AppColors.buy : AppColors.sell,
         ),
@@ -155,7 +157,9 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
             );
           }
           if (_signals.isEmpty) {
-            return const Center(child: Text('No strategies are available yet.'));
+            return const Center(
+              child: Text('No BUY or SELL signals are available right now.'),
+            );
           }
 
           return RefreshIndicator(
@@ -176,9 +180,10 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
                     child: _StrategySignalCard(
                       analysis: analysis,
                       onPaperTrade:
-                          _placingPaperTradeStrategyId != null || analysis.isWait
-                              ? null
-                              : () => _takePaperTrade(analysis, state),
+                          _placingPaperTradeStrategyId != null ||
+                              analysis.isWait
+                          ? null
+                          : () => _takePaperTrade(analysis, state),
                       onLiveTrade: _showLiveTradeNotice,
                       paperTradeLoading:
                           _placingPaperTradeStrategyId == analysis.strategy.id,
@@ -208,8 +213,12 @@ class _StrategySignalCard extends StatelessWidget {
   });
 
   Color get _signalColor {
-    if (analysis.isBuy) return AppColors.buy;
-    if (analysis.isSell) return AppColors.sell;
+    if (analysis.isBuy) {
+      return AppColors.buy;
+    }
+    if (analysis.isSell) {
+      return AppColors.sell;
+    }
     return AppColors.wait;
   }
 
@@ -217,13 +226,15 @@ class _StrategySignalCard extends StatelessWidget {
 
   double get _takeProfit {
     if (analysis.isBuy) return _entry * (1 + analysis.strategy.tpPercent / 100);
-    if (analysis.isSell) return _entry * (1 - analysis.strategy.tpPercent / 100);
+    if (analysis.isSell)
+      return _entry * (1 - analysis.strategy.tpPercent / 100);
     return 0;
   }
 
   double get _stopLoss {
     if (analysis.isBuy) return _entry * (1 - analysis.strategy.slPercent / 100);
-    if (analysis.isSell) return _entry * (1 + analysis.strategy.slPercent / 100);
+    if (analysis.isSell)
+      return _entry * (1 + analysis.strategy.slPercent / 100);
     return 0;
   }
 
@@ -235,13 +246,13 @@ class _StrategySignalCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
         leading: CircleAvatar(
-          backgroundColor: _signalColor.withOpacity(0.14),
+          backgroundColor: _signalColor.withValues(alpha: 0.14),
           child: Icon(
             analysis.isBuy
                 ? Icons.trending_up
                 : analysis.isSell
-                    ? Icons.trending_down
-                    : Icons.pause_circle_outline,
+                ? Icons.trending_down
+                : Icons.pause_circle_outline,
             color: _signalColor,
           ),
         ),
@@ -285,7 +296,11 @@ class _StrategySignalCard extends StatelessWidget {
           const SizedBox(height: 16),
           Text('Signal rationale', style: AppTextStyles.subtitle),
           const SizedBox(height: 6),
-          Text(analysis.reason.isEmpty ? 'No rationale was returned.' : analysis.reason),
+          Text(
+            analysis.reason.isEmpty
+                ? 'No rationale was returned.'
+                : analysis.reason,
+          ),
           const SizedBox(height: 20),
           Row(
             children: [

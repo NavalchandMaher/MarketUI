@@ -17,6 +17,14 @@ class Step1Basic extends StatefulWidget {
 class _Step1BasicState extends State<Step1Basic> {
   final _nameCtl = TextEditingController();
   final _descCtl = TextEditingController();
+  static const _availableSymbols = <String>[
+    'BTCUSDT',
+    'ETHUSDT',
+    'BNBUSDT',
+    'SOLUSDT',
+    'NIFTY',
+    'BANKNIFTY',
+  ];
 
   @override
   void dispose() {
@@ -87,6 +95,15 @@ class _Step1BasicState extends State<Step1Basic> {
               onChanged: (v) => provider.updateBasic(description: v),
               readOnly: widget.readOnly,
               maxLines: 3,
+            ),
+            SizedBox(height: sectionSpacing),
+            _SymbolsSelector(
+              symbols: model.symbols,
+              enabled: !widget.readOnly,
+              contentPadding: fieldPadding,
+              labelStyle: labelStyle,
+              onChanged: (symbols) => provider.updateBasic(symbols: symbols),
+              availableSymbols: _availableSymbols,
             ),
             SizedBox(height: sectionSpacing),
             Row(
@@ -213,9 +230,10 @@ class _Step1BasicState extends State<Step1Basic> {
               CheckboxListTile(
                 title: const Text('Publish strategy globally'),
                 value: model.published,
-              onChanged: widget.readOnly
-                  ? null
-                  : (value) => provider.updateBasic(published: value ?? false),
+                onChanged: widget.readOnly
+                    ? null
+                    : (value) =>
+                          provider.updateBasic(published: value ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
                 activeColor: const Color(0xFF3B82F6),
                 contentPadding: EdgeInsets.zero,
@@ -232,14 +250,14 @@ class _Step1BasicState extends State<Step1Basic> {
               children: widget.readOnly
                   ? const []
                   : [
-                _templateChip(provider, 'EMA Scalping'),
-                _templateChip(provider, 'EMA Swing'),
-                _templateChip(provider, 'Supertrend'),
-                _templateChip(provider, 'Breakout'),
-                _templateChip(provider, 'VWAP'),
-                _templateChip(provider, 'MACD'),
-                _templateChip(provider, 'RSI'),
-                _templateChip(provider, 'Custom'),
+                      _templateChip(provider, 'EMA Scalping'),
+                      _templateChip(provider, 'EMA Swing'),
+                      _templateChip(provider, 'Supertrend'),
+                      _templateChip(provider, 'Breakout'),
+                      _templateChip(provider, 'VWAP'),
+                      _templateChip(provider, 'MACD'),
+                      _templateChip(provider, 'RSI'),
+                      _templateChip(provider, 'Custom'),
                     ],
             ),
             SizedBox(height: sectionSpacing),
@@ -286,6 +304,93 @@ class _Step1BasicState extends State<Step1Basic> {
         ),
       ),
       onPressed: () => provider.loadTemplate(tmpl),
+    );
+  }
+}
+
+class _SymbolsSelector extends StatelessWidget {
+  final List<String> symbols;
+  final List<String> availableSymbols;
+  final bool enabled;
+  final EdgeInsets contentPadding;
+  final TextStyle labelStyle;
+  final ValueChanged<List<String>> onChanged;
+
+  const _SymbolsSelector({
+    required this.symbols,
+    required this.availableSymbols,
+    required this.enabled,
+    required this.contentPadding,
+    required this.labelStyle,
+    required this.onChanged,
+  });
+
+  Future<void> _showSelector(BuildContext context) async {
+    final selected = symbols.toSet();
+    final result = await showDialog<List<String>>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Select Symbols'),
+          content: SizedBox(
+            width: 360,
+            child: ListView(
+              shrinkWrap: true,
+              children: availableSymbols
+                  .map(
+                    (symbol) => CheckboxListTile(
+                      title: Text(symbol),
+                      value: selected.contains(symbol),
+                      onChanged: (checked) => setDialogState(() {
+                        if (checked == true) {
+                          selected.add(symbol);
+                        } else if (selected.length > 1) {
+                          selected.remove(symbol);
+                        }
+                      }),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, selected.toList()),
+              child: const Text('Done'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      onChanged(result);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: 'Symbols',
+        labelStyle: labelStyle,
+        contentPadding: contentPadding,
+      ),
+      child: InkWell(
+        onTap: enabled ? () => _showSelector(context) : null,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(symbols.join(', '), overflow: TextOverflow.ellipsis),
+            ),
+            const Icon(Icons.arrow_drop_down),
+          ],
+        ),
+      ),
     );
   }
 }

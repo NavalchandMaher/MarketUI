@@ -46,6 +46,7 @@ class StrategyBuilderProvider extends ChangeNotifier {
     String? description,
     String? exchange,
     String? market,
+    List<String>? symbols,
     String? timeframe,
     String? strategyType,
     bool? paperMode,
@@ -59,6 +60,7 @@ class StrategyBuilderProvider extends ChangeNotifier {
       description: description,
       exchange: exchange,
       market: market,
+      symbols: symbols,
       timeframe: timeframe,
       strategyType: strategyType,
       paperMode: paperMode,
@@ -159,6 +161,7 @@ class StrategyBuilderProvider extends ChangeNotifier {
       "priority": 1,
       "exchange": _model.exchange,
       "symbol": _model.market,
+      "symbols": _model.symbols,
       "timeframe": _model.timeframe,
       "strategy_type": _model.strategyType,
 

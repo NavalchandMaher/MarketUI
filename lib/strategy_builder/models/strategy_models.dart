@@ -207,6 +207,7 @@ class StrategyModel {
   final String description;
   final String exchange;
   final String market;
+  final List<String> symbols;
   final String timeframe;
   final String strategyType;
 
@@ -227,6 +228,7 @@ class StrategyModel {
     this.description = '',
     this.exchange = 'BINANCE',
     this.market = 'BTCUSDT',
+    this.symbols = const ['BTCUSDT'],
     this.timeframe = '5m',
     this.strategyType = 'Scalping',
     this.paperMode = true,
@@ -245,6 +247,7 @@ class StrategyModel {
     String? description,
     String? exchange,
     String? market,
+    List<String>? symbols,
     String? timeframe,
     String? strategyType,
     bool? paperMode,
@@ -261,7 +264,10 @@ class StrategyModel {
       name: name ?? this.name,
       description: description ?? this.description,
       exchange: exchange ?? this.exchange,
-      market: market ?? this.market,
+      market:
+          market ??
+          (symbols?.isNotEmpty == true ? symbols!.first : this.market),
+      symbols: symbols ?? (market == null ? this.symbols : [market]),
       timeframe: timeframe ?? this.timeframe,
       strategyType: strategyType ?? this.strategyType,
       paperMode: paperMode ?? this.paperMode,
@@ -282,6 +288,7 @@ class StrategyModel {
       "description": description,
       "exchange": exchange,
       "market": market,
+      "symbols": symbols,
       "timeframe": timeframe,
       "strategyType": strategyType,
       "paperMode": paperMode,
@@ -303,6 +310,7 @@ class StrategyModel {
       description: '',
       exchange: 'BINANCE',
       market: 'BTCUSDT',
+      symbols: const ['BTCUSDT'],
       timeframe: '5m',
       strategyType: 'Scalping',
       paperMode: true,
@@ -324,6 +332,11 @@ class StrategyModel {
       description: json["description"] ?? "",
       exchange: json["exchange"] ?? "BINANCE",
       market: json["symbol"] ?? "BTCUSDT",
+      symbols:
+          (json["symbols"] as List<dynamic>? ?? [json["symbol"] ?? "BTCUSDT"])
+              .map((symbol) => symbol.toString())
+              .where((symbol) => symbol.isNotEmpty)
+              .toList(),
       timeframe: json["timeframe"] ?? "5m",
       strategyType: json["strategy_type"] ?? "Scalping",
       paperMode: json["paper_mode"] ?? true,

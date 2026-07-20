@@ -51,7 +51,7 @@ class Step4Review extends StatelessWidget {
 
                   _infoTile("Exchange", strategy.exchange),
 
-                  _infoTile("Market", strategy.market),
+                  _infoTile("Symbols", strategy.symbols.join(', ')),
 
                   _infoTile("Timeframe", strategy.timeframe),
 
