@@ -377,6 +377,30 @@ class V3ApiService {
     return AnalysisModel.fromJson(json);
   }
 
+  Future<List<AnalysisModel>> getStrategySignals({
+    String symbol = AppConfig.defaultSymbol,
+    String timeframe = AppConfig.defaultTimeframe,
+    bool forceRefresh = false,
+  }) async {
+    final endpoint =
+        "${AppConfig.v3Strategies}/signals?symbol=$symbol&timeframe=$timeframe";
+    final json = await getRequest(
+      endpoint,
+      cacheTtl: 60,
+      forceRefresh: forceRefresh,
+    );
+    return (json as List? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(AnalysisModel.fromJson)
+        .toList();
+  }
+
+  Future<void> _invalidateStrategySignalCache() {
+    return cacheService.deleteWhere(
+      (key) => key.startsWith('${AppConfig.v3Strategies}/signals?'),
+    );
+  }
+
   // ============================================================
   // Strategies
   // ============================================================
@@ -409,6 +433,7 @@ class V3ApiService {
     );
     await cacheService.delete(AppConfig.v3Strategies);
     await cacheService.delete(AppConfig.v3AdminStrategies);
+    await _invalidateStrategySignalCache();
     return json;
   }
 
@@ -430,6 +455,7 @@ class V3ApiService {
     final json = await postRequest(AppConfig.v3Strategies, body: payload);
     // Invalidate strategies cache
     await cacheService.delete(AppConfig.v3Strategies);
+    await _invalidateStrategySignalCache();
     return json;
   }
 
@@ -444,6 +470,7 @@ class V3ApiService {
     // Invalidate caches
     await cacheService.delete(AppConfig.v3Strategies);
     await cacheService.delete("${AppConfig.v3Strategies}/$strategyId");
+    await _invalidateStrategySignalCache();
     return json;
   }
 
@@ -451,6 +478,7 @@ class V3ApiService {
     final json = await deleteRequest("${AppConfig.v3Strategies}/$strategyId");
     // Invalidate strategies cache
     await cacheService.delete(AppConfig.v3Strategies);
+    await _invalidateStrategySignalCache();
     return json;
   }
 
@@ -461,9 +489,13 @@ class V3ApiService {
   Future<Map<String, dynamic>> startPaperTrading({
     String symbol = AppConfig.defaultSymbol,
     String timeframe = AppConfig.defaultTimeframe,
+    String? strategyId,
   }) async {
+    final strategyQuery = strategyId == null || strategyId.isEmpty
+        ? ''
+        : '&strategy_id=$strategyId';
     return await postRequest(
-      "${AppConfig.v3Paper}/start?symbol=$symbol&timeframe=$timeframe",
+      "${AppConfig.v3Paper}/start?symbol=$symbol&timeframe=$timeframe$strategyQuery",
       body: const {},
     );
   }
@@ -613,7 +645,8 @@ class V3ApiService {
     await cacheService.deleteWhere(
       (key) =>
           key == AppConfig.v3Dashboard ||
-          key.startsWith('${AppConfig.analysis}?'),
+          key.startsWith('${AppConfig.analysis}?') ||
+          key.startsWith('${AppConfig.v3Strategies}/signals?'),
     );
     return json;
   }

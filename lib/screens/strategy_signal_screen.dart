@@ -8,7 +8,7 @@ import '../state/app_state.dart';
 import '../utils/constants.dart';
 import '../widgets/common_widgets.dart';
 
-/// Shows the current default strategy together with its live market signal.
+/// Shows every strategy visible to the user together with its live market signal.
 class StrategySignalScreen extends StatefulWidget {
   const StrategySignalScreen({super.key});
 
@@ -18,26 +18,62 @@ class StrategySignalScreen extends StatefulWidget {
 
 class _StrategySignalScreenState extends State<StrategySignalScreen> {
   late final V3ApiService _api;
-  bool _placingPaperTrade = false;
+  List<AnalysisModel> _signals = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+  String? _placingPaperTradeStrategyId;
+  String? _loadedSymbol;
+  String? _loadedTimeframe;
 
   @override
   void initState() {
     super.initState();
     _api = getIt<V3ApiService>();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AppState>().refreshHomeData();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadSignals());
   }
 
-  Future<void> _takePaperTrade(AppState state) async {
-    final analysis = state.analysis;
-    if (analysis == null || analysis.isWait) return;
+  Future<void> _loadSignals({bool forceRefresh = false}) async {
+    final state = context.read<AppState>();
+    final symbol = state.selectedSymbol;
+    final timeframe = state.selectedTimeframe;
 
-    setState(() => _placingPaperTrade = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final signals = await _api.getStrategySignals(
+        symbol: symbol,
+        timeframe: timeframe,
+        forceRefresh: forceRefresh,
+      );
+      if (!mounted) return;
+      setState(() {
+        _signals = signals;
+        _loadedSymbol = symbol;
+        _loadedTimeframe = timeframe;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = error.toString();
+        _loadedSymbol = symbol;
+        _loadedTimeframe = timeframe;
+      });
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _takePaperTrade(AnalysisModel analysis, AppState state) async {
+    if (analysis.isWait) return;
+
+    setState(() => _placingPaperTradeStrategyId = analysis.strategy.id);
     try {
       final response = await _api.startPaperTrading(
         symbol: state.selectedSymbol,
         timeframe: state.selectedTimeframe,
+        strategyId: analysis.strategy.id,
       );
       if (!mounted) return;
 
@@ -53,6 +89,7 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
       );
       if (success) {
         await state.refreshHomeData(forceRefresh: true);
+        await _loadSignals(forceRefresh: true);
       }
     } catch (error) {
       if (!mounted) return;
@@ -63,7 +100,7 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
         ),
       );
     } finally {
-      if (mounted) setState(() => _placingPaperTrade = false);
+      if (mounted) setState(() => _placingPaperTradeStrategyId = null);
     }
   }
 
@@ -93,59 +130,61 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
         title: const Text('Strategy Signals'),
         actions: [
           IconButton(
-            tooltip: 'Refresh signal',
-            onPressed: () => context.read<AppState>().refreshHomeData(
-              forceRefresh: true,
-            ),
+            tooltip: 'Refresh signals',
+            onPressed: () => _loadSignals(forceRefresh: true),
             icon: const Icon(Icons.refresh),
           ),
         ],
       ),
       body: Consumer<AppState>(
         builder: (context, state, _) {
-          if (state.isLoading && state.analysis == null) {
+          if (_loadedSymbol != state.selectedSymbol ||
+              _loadedTimeframe != state.selectedTimeframe) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && !_isLoading) _loadSignals();
+            });
+          }
+
+          if (_isLoading && _signals.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (state.errorMessage != null && state.analysis == null) {
+          if (_errorMessage != null && _signals.isEmpty) {
             return _ErrorState(
-              message: state.errorMessage!,
-              onRetry: () => state.refreshHomeData(forceRefresh: true),
+              message: _errorMessage!,
+              onRetry: () => _loadSignals(forceRefresh: true),
             );
           }
-          if (state.analysis == null) {
-            return const Center(child: Text('No strategy signal is available yet.'));
+          if (_signals.isEmpty) {
+            return const Center(child: Text('No strategies are available yet.'));
           }
 
           return RefreshIndicator(
-            onRefresh: () => state.refreshHomeData(forceRefresh: true),
+            onRefresh: () => _loadSignals(forceRefresh: true),
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text(
-                  'Your default strategy',
-                  style: AppTextStyles.title,
-                ),
+                Text('Live strategy signals', style: AppTextStyles.title),
                 const SizedBox(height: 4),
                 Text(
-                  'The live signal is calculated from this strategy’s indicators.',
+                  'Each signal uses that strategy’s thresholds and risk settings.',
                   style: AppTextStyles.subtitle,
                 ),
                 const SizedBox(height: 16),
-                _StrategySignalCard(
-                  analysis: state.analysis!,
-                  onPaperTrade: _placingPaperTrade || state.analysis!.isWait
-                      ? null
-                      : () => _takePaperTrade(state),
-                  onLiveTrade: _showLiveTradeNotice,
-                  paperTradeLoading: _placingPaperTrade,
-                ),
-                if (state.analysis!.isWait) ...[
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Paper trading is available when the strategy produces a BUY or SELL signal.',
-                    textAlign: TextAlign.center,
+                ..._signals.map(
+                  (analysis) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _StrategySignalCard(
+                      analysis: analysis,
+                      onPaperTrade:
+                          _placingPaperTradeStrategyId != null || analysis.isWait
+                              ? null
+                              : () => _takePaperTrade(analysis, state),
+                      onLiveTrade: _showLiveTradeNotice,
+                      paperTradeLoading:
+                          _placingPaperTradeStrategyId == analysis.strategy.id,
+                    ),
                   ),
-                ],
+                ),
               ],
             ),
           );
@@ -201,14 +240,14 @@ class _StrategySignalCard extends StatelessWidget {
             analysis.isBuy
                 ? Icons.trending_up
                 : analysis.isSell
-                ? Icons.trending_down
-                : Icons.pause_circle_outline,
+                    ? Icons.trending_down
+                    : Icons.pause_circle_outline,
             color: _signalColor,
           ),
         ),
         title: Text(
           analysis.strategy.name.isEmpty
-              ? 'Default Strategy'
+              ? 'Unnamed Strategy'
               : analysis.strategy.name,
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),

@@ -165,6 +165,8 @@ price: $price
 /// ===============================================================
 
 class StrategyInfo {
+  final String id;
+
   final String name;
 
   final int version;
@@ -178,6 +180,7 @@ class StrategyInfo {
   final double slPercent;
 
   const StrategyInfo({
+    required this.id,
     required this.name,
     required this.version,
     required this.buyThreshold,
@@ -188,6 +191,7 @@ class StrategyInfo {
 
   factory StrategyInfo.fromJson(Map<String, dynamic> json) {
     return StrategyInfo(
+      id: json["id"]?.toString() ?? "",
       name: json["name"] ?? "",
       version: json["version"] ?? 1,
       buyThreshold: json["buy_threshold"] ?? 0,
@@ -199,6 +203,7 @@ class StrategyInfo {
 
   Map<String, dynamic> toJson() {
     return {
+      "id": id,
       "name": name,
       "version": version,
       "buy_threshold": buyThreshold,
@@ -209,6 +214,7 @@ class StrategyInfo {
   }
 
   StrategyInfo copyWith({
+    String? id,
     String? name,
     int? version,
     int? buyThreshold,
@@ -217,6 +223,7 @@ class StrategyInfo {
     double? slPercent,
   }) {
     return StrategyInfo(
+      id: id ?? this.id,
       name: name ?? this.name,
       version: version ?? this.version,
       buyThreshold: buyThreshold ?? this.buyThreshold,
