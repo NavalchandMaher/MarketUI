@@ -330,6 +330,17 @@ class _ExpandedSignalCardState extends State<_ExpandedSignalCard> {
                       ),
                     ],
                   ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: widget.onToggleExpanded,
+                    icon: const Icon(Icons.close_rounded),
+                    iconSize: 20,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                    padding: EdgeInsets.zero,
+                  ),
                 ],
               ),
               const SizedBox(height: 20),

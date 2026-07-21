@@ -243,24 +243,28 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
                 final isExpanded = _expandedCards.contains(
                   analysis.strategy.id,
                 );
-                return AnimatedSwitcher(
-                  duration: AppConstants.animation,
-                  child: SignalCard(
-                    key: ValueKey(
-                      '${analysis.strategy.id}-${isExpanded ? 'expanded' : 'collapsed'}',
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: AnimatedSwitcher(
+                    duration: AppConstants.animation,
+                    child: SignalCard(
+                      key: ValueKey(
+                        '${analysis.strategy.id}-${isExpanded ? 'expanded' : 'collapsed'}',
+                      ),
+                      analysis: analysis,
+                      onPaperTrade:
+                          _placingPaperTradeStrategyId != null ||
+                              analysis.isWait
+                          ? null
+                          : () => _takePaperTrade(analysis, state),
+                      onLiveTrade: _showLiveTradeNotice,
+                      paperTradeLoading:
+                          _placingPaperTradeStrategyId == analysis.strategy.id,
+                      isExpanded: isExpanded,
+                      onToggleExpanded: () =>
+                          _toggleExpanded(analysis.strategy.id),
+                      lastUpdatedLabel: _lastUpdatedLabel,
                     ),
-                    analysis: analysis,
-                    onPaperTrade:
-                        _placingPaperTradeStrategyId != null || analysis.isWait
-                        ? null
-                        : () => _takePaperTrade(analysis, state),
-                    onLiveTrade: _showLiveTradeNotice,
-                    paperTradeLoading:
-                        _placingPaperTradeStrategyId == analysis.strategy.id,
-                    isExpanded: isExpanded,
-                    onToggleExpanded: () =>
-                        _toggleExpanded(analysis.strategy.id),
-                    lastUpdatedLabel: _lastUpdatedLabel,
                   ),
                 );
               },
