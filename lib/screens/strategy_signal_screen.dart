@@ -7,10 +7,9 @@ import '../models/analysis_model.dart';
 import '../service_locator.dart';
 import '../services/api/v3_api_service.dart';
 import '../state/app_state.dart';
-import '../utils/constants.dart';
 import '../widgets/strategy_signal_widgets.dart';
 
-/// Shows every strategy visible to the user together with its live market signal.
+/// Premium strategy signals screen with modern dark theme and smooth animations
 class StrategySignalScreen extends StatefulWidget {
   const StrategySignalScreen({super.key});
 
@@ -18,32 +17,48 @@ class StrategySignalScreen extends StatefulWidget {
   State<StrategySignalScreen> createState() => _StrategySignalScreenState();
 }
 
-class _StrategySignalScreenState extends State<StrategySignalScreen> {
+class _StrategySignalScreenState extends State<StrategySignalScreen>
+    with SingleTickerProviderStateMixin {
   late final V3ApiService _api;
+  late AnimationController _refreshIconController;
   List<AnalysisModel> _signals = [];
   bool _isLoading = true;
-  bool _isRefreshing = false;
   String? _errorMessage;
   String? _placingPaperTradeStrategyId;
-  String? _loadedSymbol;
-  String? _loadedTimeframe;
-  String _lastUpdatedLabel = 'just now';
   final Set<String> _expandedCards = <String>{};
   Timer? _refreshTimer;
+  int _secondsUntilRefresh = 30;
 
   @override
   void initState() {
     super.initState();
+    _refreshIconController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
     _api = getIt<V3ApiService>();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadSignals());
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) _loadSignals(forceRefresh: false);
+    _startRefreshTimer();
+  }
+
+  void _startRefreshTimer() {
+    _refreshTimer?.cancel();
+    _secondsUntilRefresh = 30;
+    _refreshTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() => _secondsUntilRefresh--);
+        if (_secondsUntilRefresh <= 0) {
+          _loadSignals(forceRefresh: false);
+          _startRefreshTimer();
+        }
+      }
     });
   }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _refreshIconController.dispose();
     super.dispose();
   }
 
@@ -55,9 +70,12 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
     if (!mounted) return;
     setState(() {
       _isLoading = _signals.isEmpty;
-      _isRefreshing = forceRefresh || _signals.isNotEmpty;
       _errorMessage = null;
     });
+
+    if (forceRefresh) {
+      _refreshIconController.repeat();
+    }
 
     try {
       final signals = await _api.getStrategySignals(
@@ -68,81 +86,61 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
       if (!mounted) return;
       setState(() {
         _signals = sortSignalsByConfidence(signals);
-        _loadedSymbol = symbol;
-        _loadedTimeframe = timeframe;
-        _lastUpdatedLabel = _formatLastUpdated();
       });
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _errorMessage = error.toString();
-        _loadedSymbol = symbol;
-        _loadedTimeframe = timeframe;
       });
     } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _isRefreshing = false;
         });
+        _refreshIconController.stop();
       }
     }
-  }
-
-  String _formatLastUpdated() {
-    final now = DateTime.now();
-    return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
   }
 
   Future<void> _takePaperTrade(AnalysisModel analysis, AppState state) async {
     if (analysis.isWait) return;
 
     setState(() => _placingPaperTradeStrategyId = analysis.strategy.id);
+
     try {
-      final response = await _api.startPaperTrading(
+      await _api.startPaperTrading(
+        strategyId: analysis.strategy.id,
         symbol: analysis.symbol,
         timeframe: analysis.timeframe,
-        strategyId: analysis.strategy.id,
       );
-      if (!mounted) return;
 
-      final success = response['success'] == true;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            response['message']?.toString() ??
-                (success
-                    ? 'Paper trade opened.'
-                    : 'Unable to open paper trade.'),
-          ),
-          backgroundColor: success ? AppColors.buy : AppColors.sell,
-        ),
-      );
-      if (success) {
-        await state.refreshHomeData(forceRefresh: true);
-        await _loadSignals(forceRefresh: true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Paper trade started successfully!')),
+        );
+        state.refreshHomeData();
+        _loadSignals();
       }
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Unable to open paper trade: $error'),
-          backgroundColor: AppColors.sell,
-        ),
-      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
-      if (mounted) setState(() => _placingPaperTradeStrategyId = null);
+      if (mounted) {
+        setState(() => _placingPaperTradeStrategyId = null);
+      }
     }
   }
 
   void _showLiveTradeNotice() {
-    showDialog<void>(
+    showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Live trading is not connected'),
+        title: const Text('Live Trading'),
         content: const Text(
-          'Connect a broker and configure live-order execution before placing a real trade. '
-          'Until then, use paper trading to validate this signal.',
+          'Live trading is not yet connected. Please use paper trading to test strategies.',
         ),
         actions: [
           TextButton(
@@ -154,122 +152,181 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
     );
   }
 
-  void _toggleExpanded(String id) {
+  void _toggleExpanded(String cardId) {
     setState(() {
-      if (_expandedCards.contains(id)) {
-        _expandedCards.remove(id);
+      if (_expandedCards.contains(cardId)) {
+        _expandedCards.remove(cardId);
       } else {
-        _expandedCards.add(id);
+        _expandedCards.add(cardId);
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Strategy Signals'),
-        actions: [
-          AnimatedRotation(
-            turns: _isRefreshing ? 1 / 2 : 0,
-            duration: AppConstants.animation,
-            child: IconButton(
-              tooltip: 'Refresh signals',
-              onPressed: () => _loadSignals(forceRefresh: true),
-              icon: const Icon(Icons.refresh_rounded),
+    return Consumer<AppState>(
+      builder: (context, state, _) {
+        final isLoading = _isLoading;
+        final signals = _signals;
+        final error = _errorMessage;
+
+        if (isLoading) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading strategy signals...',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
             ),
+          );
+        }
+
+        if (error != null && signals.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Strategy Signals'),
+              elevation: 0,
+              centerTitle: false,
+              actions: [
+                IconButton(
+                  onPressed: () => _loadSignals(forceRefresh: true),
+                  icon: RotationTransition(
+                    turns: _refreshIconController,
+                    child: const Icon(Icons.refresh_rounded),
+                  ),
+                ),
+              ],
+            ),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    size: 64,
+                    color: Colors.red.shade300,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error loading signals',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => _loadSignals(forceRefresh: true),
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (signals.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Strategy Signals'),
+              elevation: 0,
+              centerTitle: false,
+              actions: [
+                IconButton(
+                  onPressed: () => _loadSignals(forceRefresh: true),
+                  icon: RotationTransition(
+                    turns: _refreshIconController,
+                    child: const Icon(Icons.refresh_rounded),
+                  ),
+                ),
+              ],
+            ),
+            body: const Center(
+              child: Text('No BUY or SELL signals available right now.'),
+            ),
+          );
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Strategy Signals'),
+            elevation: 0,
+            centerTitle: false,
+            actions: [
+              IconButton(
+                onPressed: () => _loadSignals(forceRefresh: true),
+                icon: RotationTransition(
+                  turns: _refreshIconController,
+                  child: const Icon(Icons.refresh_rounded),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Consumer<AppState>(
-        builder: (context, state, _) {
-          if (_loadedSymbol != state.selectedSymbol ||
-              _loadedTimeframe != state.selectedTimeframe) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && !_isLoading) _loadSignals();
-            });
-          }
-
-          if (_isLoading && _signals.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (_errorMessage != null && _signals.isEmpty) {
-            return _ErrorState(
-              message: _errorMessage!,
-              onRetry: () => _loadSignals(forceRefresh: true),
-            );
-          }
-          if (_signals.isEmpty) {
-            return const Center(
-              child: Text('No BUY or SELL signals are available right now.'),
-            );
-          }
-
-          return RefreshIndicator(
+          body: RefreshIndicator(
             onRefresh: () => _loadSignals(forceRefresh: true),
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-              itemCount: _signals.length,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+              itemCount: signals.length + 1,
               itemBuilder: (context, index) {
-                final analysis = _signals[index];
-                final isExpanded = _expandedCards.contains(
-                  analysis.strategy.id,
-                );
+                // Header with countdown timer
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: RefreshCountdownTimer(
+                      duration: Duration(seconds: _secondsUntilRefresh),
+                      onComplete: () => _loadSignals(forceRefresh: false),
+                    ),
+                  );
+                }
+
+                final analysis = signals[index - 1];
+                final cardId = 'signal_${index - 1}_${analysis.strategy.id}';
+                final isExpanded = _expandedCards.contains(cardId);
+
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: AnimatedSwitcher(
-                    duration: AppConstants.animation,
-                    child: SignalCard(
-                      key: ValueKey(
-                        '${analysis.strategy.id}-${isExpanded ? 'expanded' : 'collapsed'}',
+                  child: AnimatedSize(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: SignalCard(
+                        key: ValueKey(
+                          '$cardId-${isExpanded ? 'expanded' : 'collapsed'}',
+                        ),
+                        analysis: analysis,
+                        onPaperTrade:
+                            _placingPaperTradeStrategyId != null ||
+                                analysis.isWait
+                            ? null
+                            : () => _takePaperTrade(analysis, state),
+                        onLiveTrade: _showLiveTradeNotice,
+                        paperTradeLoading:
+                            _placingPaperTradeStrategyId ==
+                            analysis.strategy.id,
+                        isExpanded: isExpanded,
+                        onToggleExpanded: () => _toggleExpanded(cardId),
+                        lastUpdatedLabel: '',
                       ),
-                      analysis: analysis,
-                      onPaperTrade:
-                          _placingPaperTradeStrategyId != null ||
-                              analysis.isWait
-                          ? null
-                          : () => _takePaperTrade(analysis, state),
-                      onLiveTrade: _showLiveTradeNotice,
-                      paperTradeLoading:
-                          _placingPaperTradeStrategyId == analysis.strategy.id,
-                      isExpanded: isExpanded,
-                      onToggleExpanded: () =>
-                          _toggleExpanded(analysis.strategy.id),
-                      lastUpdatedLabel: _lastUpdatedLabel,
                     ),
                   ),
                 );
               },
             ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline_rounded, size: 56, color: AppColors.sell),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: onRetry, child: const Text('Try again')),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
