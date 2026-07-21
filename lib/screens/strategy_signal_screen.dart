@@ -209,37 +209,9 @@ class _StrategySignalScreenState extends State<StrategySignalScreen> {
             onRefresh: () => _loadSignals(forceRefresh: true),
             child: ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-              itemCount: _signals.length + 1,
+              itemCount: _signals.length,
               itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Live strategy signals',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Auto-refreshing every 30s • Tap any card to inspect your levels.',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Last Updated $_lastUpdatedLabel',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                  );
-                }
-
-                final analysis = _signals[index - 1];
+                final analysis = _signals[index];
                 final isExpanded = _expandedCards.contains(
                   analysis.strategy.id,
                 );
