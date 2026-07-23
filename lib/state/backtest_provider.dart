@@ -55,73 +55,156 @@ class BacktestProvider extends ChangeNotifier {
     double initialCapital = 100000.0,
     double commission = 0.0,
     double slippage = 0.0,
+  }) {
+    return runBacktests(
+      strategyNames: [strategyName],
+      symbols: [symbol],
+      timeframes: [timeframe],
+      startDate: startDate,
+      endDate: endDate,
+      initialCapital: initialCapital,
+      commission: commission,
+      slippage: slippage,
+    );
+  }
+
+  /// Runs every selected strategy, symbol, and timeframe combination one at
+  /// a time. The API currently accepts one combination per backtest job.
+  Future<bool> runBacktests({
+    required Iterable<String> strategyNames,
+    required Iterable<String> symbols,
+    required Iterable<String> timeframes,
+    required DateTime startDate,
+    required DateTime endDate,
+    double initialCapital = 100000.0,
+    double commission = 0.0,
+    double slippage = 0.0,
   }) async {
+    final strategies = strategyNames
+        .where((value) => value.trim().isNotEmpty)
+        .toSet();
+    final selectedSymbols = symbols
+        .where((value) => value.trim().isNotEmpty)
+        .toSet();
+    final selectedTimeframes = timeframes
+        .where((value) => value.trim().isNotEmpty)
+        .toSet();
+
+    if (strategies.isEmpty ||
+        selectedSymbols.isEmpty ||
+        selectedTimeframes.isEmpty) {
+      _errorMessage =
+          'Select at least one strategy, trading symbol, and timeframe.';
+      notifyListeners();
+      return false;
+    }
+
     _isRunning = true;
     _isLoading = true;
     _errorMessage = null;
     _successMessage = null;
-    _symbol = symbol;
-    _timeframe = timeframe;
     _days = endDate.difference(startDate).inDays.clamp(1, 3650);
     notifyListeners();
 
+    final failures = <String>[];
+    var completed = 0;
     try {
-      // POST request to async backtest endpoint with parameters
-      final response = await _api.postRequest(
-        AppConfig.backtestAsync,
-        body: {
-          'strategy_name': strategyName,
-          'symbol': symbol,
-          'timeframe': timeframe,
-          'start_date': startDate.toIso8601String(),
-          'end_date': endDate.toIso8601String(),
-          'days': _days,
-          'initial_capital': initialCapital,
-          'commission': commission,
-          'slippage': slippage,
-        },
-      );
-
-      final backtestId =
-          response is Map<String, dynamic> && response['backtest_id'] != null
-          ? response['backtest_id'] as String
-          : null;
-
-      if (backtestId == null) {
-        throw Exception('Backtest start failed');
-      }
-
-      const pollInterval = Duration(seconds: 3);
-      String status = 'running';
-      while (status == 'running') {
-        await Future.delayed(pollInterval);
-        final stat = await _api.getRequest('/v3/backtest/$backtestId/status');
-        if (stat is Map<String, dynamic> && stat['status'] != null) {
-          status = stat['status'] as String;
-        } else {
-          throw Exception('Invalid backtest status response');
+      for (final strategyName in strategies) {
+        for (final symbol in selectedSymbols) {
+          for (final timeframe in selectedTimeframes) {
+            _symbol = symbol;
+            _timeframe = timeframe;
+            try {
+              _currentBacktest = await _runSingleBacktest(
+                strategyName: strategyName,
+                symbol: symbol,
+                timeframe: timeframe,
+                startDate: startDate,
+                endDate: endDate,
+                initialCapital: initialCapital,
+                commission: commission,
+                slippage: slippage,
+              );
+              completed++;
+            } catch (error) {
+              failures.add('$strategyName / $symbol / $timeframe: $error');
+            }
+          }
         }
       }
 
-      if (status == 'completed') {
-        _currentBacktest = await getBacktestDetail(backtestId);
-        await loadBacktestHistory(forceRefresh: true);
-        _successMessage = 'Backtest completed successfully';
-        _errorMessage = null;
-        return true;
+      await loadBacktestHistory(forceRefresh: true);
+      final total =
+          strategies.length * selectedSymbols.length * selectedTimeframes.length;
+      if (completed == 0) {
+        _errorMessage = failures.isEmpty
+            ? 'No backtests completed.'
+            : 'No backtests completed. ${failures.first}';
+        return false;
       }
 
-      throw Exception('Backtest ended with status: $status');
-    } catch (e) {
+      _successMessage = failures.isEmpty
+          ? '$completed backtest${completed == 1 ? '' : 's'} completed successfully.'
+          : '$completed of $total backtests completed. ${failures.length} failed.';
+      _errorMessage = failures.isEmpty ? null : failures.first;
+      return failures.isEmpty;
+    } catch (error) {
       _successMessage = null;
-      _errorMessage = e.toString();
-      print('[BACKTEST] Error running backtest: $e');
+      _errorMessage = error.toString();
+      print('[BACKTEST] Error running backtests: $error');
       return false;
     } finally {
       _isRunning = false;
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<Map<String, dynamic>?> _runSingleBacktest({
+    required String strategyName,
+    required String symbol,
+    required String timeframe,
+    required DateTime startDate,
+    required DateTime endDate,
+    required double initialCapital,
+    required double commission,
+    required double slippage,
+  }) async {
+    final response = await _api.postRequest(
+      AppConfig.backtestAsync,
+      body: {
+        'strategy_name': strategyName,
+        'symbol': symbol,
+        'timeframe': timeframe,
+        'start_date': startDate.toIso8601String(),
+        'end_date': endDate.toIso8601String(),
+        'days': _days,
+        'initial_capital': initialCapital,
+        'commission': commission,
+        'slippage': slippage,
+      },
+    );
+    final backtestId =
+        response is Map<String, dynamic> && response['backtest_id'] != null
+        ? response['backtest_id'] as String
+        : null;
+    if (backtestId == null) throw Exception('Backtest start failed');
+
+    const pollInterval = Duration(seconds: 3);
+    String status = 'running';
+    while (status == 'running') {
+      await Future.delayed(pollInterval);
+      final stat = await _api.getRequest('/v3/backtest/$backtestId/status');
+      if (stat is Map<String, dynamic> && stat['status'] != null) {
+        status = stat['status'] as String;
+      } else {
+        throw Exception('Invalid backtest status response');
+      }
+    }
+    if (status != 'completed') {
+      throw Exception('Backtest ended with status: $status');
+    }
+    return getBacktestDetail(backtestId);
   }
 
   // ============================================================

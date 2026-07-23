@@ -15,18 +15,25 @@ class BacktestTestingScreen extends StatefulWidget {
 class _BacktestTestingScreenState extends State<BacktestTestingScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  late TextEditingController _symbolController;
   late TextEditingController _daysController;
-  String _selectedTimeframe = "5m";
-  String? _selectedStrategyName;
+  Set<String> _selectedStrategyNames = <String>{};
+  Set<String> _selectedSymbols = <String>{'BTCUSDT'};
+  Set<String> _selectedTimeframes = <String>{'5m'};
 
   final List<String> _timeframes = ["1m", "5m", "15m", "1h", "4h", "1d"];
+  final List<String> _symbols = [
+    'BTCUSDT',
+    'ETHUSDT',
+    'BNBUSDT',
+    'SOLUSDT',
+    'NIFTY',
+    'BANKNIFTY',
+  ];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _symbolController = TextEditingController(text: "BTCUSDT");
     _daysController = TextEditingController(text: "30");
 
     // Load saved strategies and history on first open
@@ -40,36 +47,44 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
   @override
   void dispose() {
     _tabController.dispose();
-    _symbolController.dispose();
     _daysController.dispose();
     super.dispose();
   }
 
   void _runBacktest() {
-    final symbol = _symbolController.text.trim();
-    final strategyName = _selectedStrategyName?.trim() ?? '';
     final days = int.tryParse(_daysController.text) ?? 30;
     final endDate = DateTime.now();
     final startDate = endDate.subtract(Duration(days: days));
 
-    if (symbol.isEmpty) {
+    if (_selectedSymbols.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text("Please enter a symbol")));
+      ).showSnackBar(
+        const SnackBar(content: Text("Please select a trading symbol")),
+      );
       return;
     }
 
-    if (strategyName.isEmpty) {
+    if (_selectedStrategyNames.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Please select a strategy")));
       return;
     }
 
-    context.read<BacktestProvider>().runBacktest(
-      strategyName: strategyName,
-      symbol: symbol,
-      timeframe: _selectedTimeframe,
+    if (_selectedTimeframes.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(
+        const SnackBar(content: Text("Please select a timeframe")),
+      );
+      return;
+    }
+
+    context.read<BacktestProvider>().runBacktests(
+      strategyNames: _selectedStrategyNames,
+      symbols: _selectedSymbols,
+      timeframes: _selectedTimeframes,
       startDate: startDate,
       endDate: endDate,
       initialCapital: 10000.0,
@@ -120,6 +135,10 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
   }
 
   Widget _buildRunBacktestTab(BacktestProvider provider) {
+    final jobCount =
+        _selectedStrategyNames.length *
+        _selectedSymbols.length *
+        _selectedTimeframes.length;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -136,95 +155,44 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
           ),
           const SizedBox(height: 24),
 
-          // Strategy Selector
-          const Text("Select Strategy", style: TextStyle(color: Colors.grey)),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            value: _selectedStrategyName,
-            isExpanded: true,
-            decoration: InputDecoration(
-              hintText: "Choose a saved strategy",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.all(12),
-            ),
-            items: provider.strategies.map((strategy) {
-              final strategyName =
-                  (strategy['strategy_name'] ?? strategy['name'] ?? '')
-                      .toString();
-              return DropdownMenuItem<String>(
-                value: strategyName,
-                child: Text(strategyName),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedStrategyName = value;
-                if (value == null) return;
-
-                final selectedStrategy = provider.strategies.firstWhere(
+          _MultiSelectDropdown(
+            label: 'Select Strategy',
+            hint: 'Choose one or more saved strategies',
+            options: provider.strategies
+                .map(
                   (strategy) =>
                       (strategy['strategy_name'] ?? strategy['name'] ?? '')
-                          .toString() ==
-                      value,
-                  orElse: () => <String, dynamic>{},
-                );
-
-                if (selectedStrategy is Map<String, dynamic>) {
-                  final symbol = (selectedStrategy['symbol'] ?? 'BTCUSDT')
-                      .toString();
-                  final timeframe = (selectedStrategy['timeframe'] ?? '5m')
-                      .toString();
-                  _symbolController.text = symbol;
-                  _selectedTimeframe = timeframe;
-                }
-              });
-            },
+                          .toString(),
+                )
+                .where((name) => name.isNotEmpty)
+                .toSet()
+                .toList(),
+            selectedValues: _selectedStrategyNames,
+            onChanged: (values) => setState(() {
+              _selectedStrategyNames = values;
+            }),
           ),
           const SizedBox(height: 20),
 
-          // Symbol Input
-          const Text("Trading Symbol", style: TextStyle(color: Colors.grey)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _symbolController,
-            decoration: InputDecoration(
-              hintText: "e.g., BTCUSDT",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.all(12),
-            ),
+          _MultiSelectDropdown(
+            label: 'Trading Symbol',
+            hint: 'Choose one or more symbols',
+            options: _availableSymbols(provider),
+            selectedValues: _selectedSymbols,
+            onChanged: (values) => setState(() {
+              _selectedSymbols = values;
+            }),
           ),
           const SizedBox(height: 20),
 
-          // Timeframe Selection
-          const Text("Timeframe", style: TextStyle(color: Colors.grey)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: _timeframes.map((tf) {
-              final isSelected = _selectedTimeframe == tf;
-              return ChoiceChip(
-                label: Text(tf),
-                selected: isSelected,
-                onSelected: (selected) {
-                  setState(() {
-                    _selectedTimeframe = tf;
-                  });
-                },
-                selectedColor: Colors.green,
-                backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-                labelStyle: TextStyle(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.onSurface
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              );
-            }).toList(),
+          _MultiSelectDropdown(
+            label: 'Timeframe',
+            hint: 'Choose one or more timeframes',
+            options: _timeframes,
+            selectedValues: _selectedTimeframes,
+            onChanged: (values) => setState(() {
+              _selectedTimeframes = values;
+            }),
           ),
           const SizedBox(height: 20),
 
@@ -267,8 +235,8 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : const Text(
-                    "Run Backtest",
+                : Text(
+                    jobCount > 1 ? 'Run $jobCount Backtests' : 'Run Backtest',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -889,5 +857,157 @@ class _BacktestTestingScreenState extends State<BacktestTestingScreen>
     } catch (_) {
       return val.toString();
     }
+  }
+
+  List<String> _availableSymbols(BacktestProvider provider) {
+    final available = <String>{..._symbols};
+    for (final strategy in provider.strategies) {
+      if (strategy is! Map) continue;
+      final strategySymbol = strategy['symbol'];
+      if (strategySymbol is String && strategySymbol.trim().isNotEmpty) {
+        available.add(strategySymbol.trim().toUpperCase());
+      }
+      final strategySymbols = strategy['symbols'];
+      if (strategySymbols is List) {
+        for (final symbol in strategySymbols) {
+          if (symbol is String && symbol.trim().isNotEmpty) {
+            available.add(symbol.trim().toUpperCase());
+          }
+        }
+      }
+    }
+    return available.toList(growable: false);
+  }
+}
+
+class _MultiSelectDropdown extends StatelessWidget {
+  final String label;
+  final String hint;
+  final List<String> options;
+  final Set<String> selectedValues;
+  final ValueChanged<Set<String>> onChanged;
+
+  const _MultiSelectDropdown({
+    required this.label,
+    required this.hint,
+    required this.options,
+    required this.selectedValues,
+    required this.onChanged,
+  });
+
+  String get _selectionSummary {
+    final selected = options
+        .where(selectedValues.contains)
+        .toList(growable: false);
+    if (selected.isEmpty) return hint;
+    if (selected.length == 1) return selected.first;
+    return '${selected.length} selected: ${selected.take(2).join(', ')}${selected.length > 2 ? '...' : ''}';
+  }
+
+  Future<void> _openSelector(BuildContext context) async {
+    final draft = Set<String>.from(selectedValues);
+    final selection = await showModalBottomSheet<Set<String>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => setSheetState(draft.clear),
+                      child: const Text('Clear'),
+                    ),
+                  ],
+                ),
+                const Divider(),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 360),
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: options
+                        .map(
+                          (option) => CheckboxListTile(
+                            value: draft.contains(option),
+                            title: Text(option),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            contentPadding: EdgeInsets.zero,
+                            onChanged: (checked) => setSheetState(() {
+                              if (checked ?? false) {
+                                draft.add(option);
+                              } else {
+                                draft.remove(option);
+                              }
+                            }),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(sheetContext, draft),
+                  child: const Text('Done'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (selection != null) onChanged(selection);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSelection = selectedValues.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey)),
+        const SizedBox(height: 8),
+        Material(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(8),
+          child: InkWell(
+            onTap: options.isEmpty ? null : () => _openSelector(context),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      options.isEmpty
+                          ? 'No options available'
+                          : _selectionSummary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: hasSelection
+                            ? Theme.of(context).colorScheme.onSurface
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  const Icon(Icons.arrow_drop_down),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
