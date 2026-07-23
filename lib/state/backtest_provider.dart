@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import '../config.dart';
 import '../service_locator.dart';
@@ -68,8 +70,8 @@ class BacktestProvider extends ChangeNotifier {
     );
   }
 
-  /// Runs every selected strategy, symbol, and timeframe combination one at
-  /// a time. The API currently accepts one combination per backtest job.
+  /// Runs selected combinations through a bounded client pool. The server
+  /// queues each one in its own bounded worker pool as well.
   Future<bool> runBacktests({
     required Iterable<String> strategyNames,
     required Iterable<String> symbols,
@@ -106,32 +108,49 @@ class BacktestProvider extends ChangeNotifier {
     _days = endDate.difference(startDate).inDays.clamp(1, 3650);
     notifyListeners();
 
+    final jobs = <_BacktestJob>[];
+    for (final strategyName in strategies) {
+      for (final symbol in selectedSymbols) {
+        for (final timeframe in selectedTimeframes) {
+          jobs.add(
+            _BacktestJob(
+              strategyName: strategyName,
+              symbol: symbol,
+              timeframe: timeframe,
+            ),
+          );
+        }
+      }
+    }
+
     final failures = <String>[];
     var completed = 0;
     try {
-      for (final strategyName in strategies) {
-        for (final symbol in selectedSymbols) {
-          for (final timeframe in selectedTimeframes) {
-            _symbol = symbol;
-            _timeframe = timeframe;
-            try {
-              _currentBacktest = await _runSingleBacktest(
-                strategyName: strategyName,
-                symbol: symbol,
-                timeframe: timeframe,
-                startDate: startDate,
-                endDate: endDate,
-                initialCapital: initialCapital,
-                commission: commission,
-                slippage: slippage,
-              );
-              completed++;
-            } catch (error) {
-              failures.add('$strategyName / $symbol / $timeframe: $error');
-            }
+      var nextJobIndex = 0;
+      Future<void> runWorker() async {
+        while (nextJobIndex < jobs.length) {
+          final job = jobs[nextJobIndex++];
+          _symbol = job.symbol;
+          _timeframe = job.timeframe;
+          try {
+            _currentBacktest = await _runSingleBacktest(
+              strategyName: job.strategyName,
+              symbol: job.symbol,
+              timeframe: job.timeframe,
+              startDate: startDate,
+              endDate: endDate,
+              initialCapital: initialCapital,
+              commission: commission,
+              slippage: slippage,
+            );
+            completed++;
+          } catch (error) {
+            failures.add('${job.strategyName} / ${job.symbol} / ${job.timeframe}: $error');
           }
         }
       }
+      final workerCount = math.min(4, jobs.length);
+      await Future.wait(List.generate(workerCount, (_) => runWorker()));
 
       await loadBacktestHistory(forceRefresh: true);
       final total =
@@ -338,4 +357,16 @@ class BacktestProvider extends ChangeNotifier {
     _days = 30;
     notifyListeners();
   }
+}
+
+class _BacktestJob {
+  final String strategyName;
+  final String symbol;
+  final String timeframe;
+
+  const _BacktestJob({
+    required this.strategyName,
+    required this.symbol,
+    required this.timeframe,
+  });
 }
