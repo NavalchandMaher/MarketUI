@@ -4,6 +4,13 @@ import 'package:market_app/widgets/strategy_signal_widgets.dart';
 
 void main() {
   group('Strategy signal helpers', () {
+    test('SELL take profit is below entry and stop loss is above entry', () {
+      expect(calculateTakeProfitPrice(100, 2, 'SELL'), 98);
+      expect(calculateStopLossPrice(100, 1, 'SELL'), 101);
+      expect(calculateTakeProfitPrice(100, 2, 'BUY'), 102);
+      expect(calculateStopLossPrice(100, 1, 'BUY'), 99);
+    });
+
     test('sortSignalsByConfidence orders highest confidence first', () {
       final signals = [
         const AnalysisModel(
@@ -146,6 +153,60 @@ void main() {
 
       expect(bullets.length, 4);
       expect(bullets.first, contains('support'));
+    });
+
+    test('buildTradeJustificationBullets uses contextual API justification', () {
+      const analysis = AnalysisModel(
+        symbol: 'BTCUSDT',
+        timeframe: '5m',
+        signal: 'SELL',
+        confidence: 84,
+        score: -6,
+        reason: '',
+        tradeJustification: [
+          'Short Momentum produced a SELL from its configured RSI rule.',
+          'Market sentiment is bearish and open interest is falling.',
+        ],
+        marketRegime: 'TRENDING',
+        higherTimeframe: 'BEARISH',
+        price: 100.0,
+        strategy: StrategyInfo(
+          id: 's1',
+          name: 'Short Momentum',
+          version: 1,
+          buyThreshold: 3,
+          sellThreshold: -3,
+          tpPercent: 1.5,
+          slPercent: 0.8,
+        ),
+        indicators: IndicatorInfo(
+          ema20: 99,
+          ema50: 100,
+          ema100: 101,
+          ema200: 102,
+          rsi: 68,
+          macd: -0.8,
+          macdSignal: -0.2,
+          adx: 28,
+          atr: 0.4,
+          pcr: 0.7,
+          volumeRatio: 1.2,
+          oiChangePct: -0.5,
+        ),
+        paperTrade: PaperTradeInfo(
+          signal: 'WAIT',
+          entryPrice: 0,
+          takeProfit: 0,
+          stopLoss: 0,
+          openedAt: '',
+        ),
+        chart: [],
+      );
+
+      expect(
+        buildTradeJustificationBullets(analysis),
+        analysis.tradeJustification,
+      );
     });
   });
 }

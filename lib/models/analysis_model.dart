@@ -17,6 +17,10 @@ class AnalysisModel {
 
   final String reason;
 
+  /// Contextual explanation returned by the signal service for this specific
+  /// strategy, signal, and current market snapshot.
+  final List<String> tradeJustification;
+
   final String marketRegime;
 
   final String higherTimeframe;
@@ -38,6 +42,7 @@ class AnalysisModel {
     required this.confidence,
     required this.score,
     required this.reason,
+    this.tradeJustification = const [],
     required this.marketRegime,
     required this.higherTimeframe,
     required this.price,
@@ -60,6 +65,11 @@ class AnalysisModel {
       score: json["score"] ?? 0,
 
       reason: json["reason"] ?? "",
+
+      tradeJustification: (json["trade_justification"] as List? ?? [])
+          .map((item) => item.toString())
+          .where((item) => item.isNotEmpty)
+          .toList(),
 
       marketRegime: json["market_regime"] ?? "",
 
@@ -92,6 +102,7 @@ class AnalysisModel {
       "confidence": confidence,
       "score": score,
       "reason": reason,
+      "trade_justification": tradeJustification,
       "market_regime": marketRegime,
       "higher_timeframe": higherTimeframe,
       "price": price,
@@ -111,6 +122,7 @@ class AnalysisModel {
     int? confidence,
     int? score,
     String? reason,
+    List<String>? tradeJustification,
     String? marketRegime,
     String? higherTimeframe,
     double? price,
@@ -126,6 +138,7 @@ class AnalysisModel {
       confidence: confidence ?? this.confidence,
       score: score ?? this.score,
       reason: reason ?? this.reason,
+      tradeJustification: tradeJustification ?? this.tradeJustification,
       marketRegime: marketRegime ?? this.marketRegime,
       higherTimeframe: higherTimeframe ?? this.higherTimeframe,
       price: price ?? this.price,

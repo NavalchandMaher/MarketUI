@@ -39,6 +39,28 @@ String formatPrice(double value) => value == 0 ? '—' : value.toStringAsFixed(2
 
 String formatPercent(double value) => '${value.toStringAsFixed(1)}%';
 
+double calculateTakeProfitPrice(
+  double entry,
+  double percentage,
+  String signal,
+) {
+  final multiplier = percentage / 100;
+  return signal.toUpperCase() == 'SELL'
+      ? entry * (1 - multiplier)
+      : entry * (1 + multiplier);
+}
+
+double calculateStopLossPrice(
+  double entry,
+  double percentage,
+  String signal,
+) {
+  final multiplier = percentage / 100;
+  return signal.toUpperCase() == 'SELL'
+      ? entry * (1 + multiplier)
+      : entry * (1 - multiplier);
+}
+
 String formatRiskReward(double entry, double tp, double sl) {
   if (entry <= 0 || tp <= 0 || sl <= 0) return '1 : 0.0';
   final rr = ((tp - entry).abs() / (entry - sl).abs()).clamp(0.0, 999.0);
@@ -46,6 +68,10 @@ String formatRiskReward(double entry, double tp, double sl) {
 }
 
 List<String> buildTradeJustificationBullets(AnalysisModel analysis) {
+  if (analysis.tradeJustification.isNotEmpty) {
+    return analysis.tradeJustification.take(5).toList();
+  }
+
   final isBuy = analysis.isBuy;
   final bool bullish = analysis.higherTimeframe.toUpperCase() == 'BULLISH';
   final bool bearish = analysis.higherTimeframe.toUpperCase() == 'BEARISH';
@@ -302,13 +328,10 @@ class _ExpandedSignalCardState extends State<_ExpandedSignalCard> {
   }
 
   double get _entry => widget.analysis.price;
-  double get _tpPrice => _entry * (1 + (_tpPercent / 100));
-  double get _slPrice {
-    if (widget.analysis.isBuy) {
-      return _entry * (1 - (_slPercent / 100));
-    }
-    return _entry * (1 + (_slPercent / 100));
-  }
+  double get _tpPrice =>
+      calculateTakeProfitPrice(_entry, _tpPercent, widget.analysis.signal);
+  double get _slPrice =>
+      calculateStopLossPrice(_entry, _slPercent, widget.analysis.signal);
 
   String get _riskReward => formatRiskReward(_entry, _tpPrice, _slPrice);
 
@@ -456,7 +479,7 @@ class _ExpandedSignalCardState extends State<_ExpandedSignalCard> {
                     ),
                     onChanged: (value) => setState(() => _tpPercent = value),
                     displayValue:
-                        '${_tpPrice.toStringAsFixed(2)} (+${_tpPercent.toStringAsFixed(1)}%)',
+                        '${_tpPrice.toStringAsFixed(2)} (${widget.analysis.isSell ? '-' : '+'}${_tpPercent.toStringAsFixed(1)}%)',
                     color: _colorGreen,
                   ),
                 ),
@@ -478,7 +501,7 @@ class _ExpandedSignalCardState extends State<_ExpandedSignalCard> {
                     ),
                     onChanged: (value) => setState(() => _slPercent = value),
                     displayValue:
-                        '${_slPrice.toStringAsFixed(2)} (-${_slPercent.toStringAsFixed(1)}%)',
+                        '${_slPrice.toStringAsFixed(2)} (${widget.analysis.isSell ? '+' : '-'}${_slPercent.toStringAsFixed(1)}%)',
                     color: _colorRed,
                   ),
                 ),
